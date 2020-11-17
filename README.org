@@ -1,0 +1,7 @@
+* Unofficial Rust binding for Playdate C API
+** Setup
+- Set $PLAYDATE_SDK_PATH
+- Set $LIBCLANG
+- Copy the build file "libplaydate.dylib" into a ".pdx" folder and run it from the emulator
+** Caution
+Currently only tested on x86 emulator
