@@ -21,6 +21,7 @@ fn build() -> bindgen::Bindings {
         .header("wrapper.h")
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))
         .clang_arg(format!("-I{}/C_API", pd_sdk_path))
+        .default_enum_style(bindgen::EnumVariation::Rust{ non_exhaustive: false })
         .derive_default(true)
         .derive_eq(true)
         .bitfield_enum("FileOptions")

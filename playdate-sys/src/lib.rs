@@ -3,6 +3,6 @@
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 
-use cty;
+pub use cty;
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
