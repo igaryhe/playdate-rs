@@ -1,0 +1,13 @@
+[package]
+name = "playdate-sys"
+version = "0.1.0"
+authors = ["Dan <igaryhe@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+cty = "0.2.1"
+
+[build-dependencies]
+bindgen = "0.55.1"
