@@ -1,0 +1,18 @@
+[config]
+default_to_workspace = false
+
+[tasks.build]
+command = "cargo"
+args = ["build", "--release", "-Zfeatures=host_dep"]
+
+[tasks.post-build]
+script = [
+    "mkdir target/release/source",
+    "touch target/release/source/pdxinfo",
+    "touch target/release/source/pdex.bin",
+    "cp target/release/*.dylib target/release/source/pdex.dylib",
+    "pdc target/release/source target/release/out.pdx"
+]
+
+[tasks.pdx]
+dependencies = ["build", "post-build"]

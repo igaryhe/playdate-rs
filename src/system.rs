@@ -1,7 +1,7 @@
-use sys;
-use core::ptr;
 use anyhow::Result;
+use core::ptr;
 use cstr_core::CString;
+use sys;
 
 #[derive(Copy, Clone)]
 pub struct System {
@@ -10,22 +10,26 @@ pub struct System {
 
 impl System {
     pub fn new(system: *mut sys::playdate_sys) -> Self {
-        System {
-            system,
-        }
+        System { system }
     }
 
-    pub fn set_update_callback(&self, update: sys::PDCallbackFunction, userdata: *mut sys::cty::c_void) -> Result<()> {
+    pub fn set_update_callback(
+        &self,
+        update: sys::PDCallbackFunction,
+        userdata: *mut sys::cty::c_void,
+    ) -> Result<()> {
         unsafe {
             (*self.system).setUpdateCallback.unwrap()(update, userdata);
         }
         Ok(())
     }
 
-    pub fn realloc(&self, ptr: *mut sys::cty::c_void, size: sys::cty::c_ulong) -> *mut sys::cty::c_void {
-        unsafe {
-            (*self.system).realloc.unwrap()(ptr, size)
-        }
+    pub fn realloc(
+        &self,
+        ptr: *mut sys::cty::c_void,
+        size: sys::cty::c_ulong,
+    ) -> *mut sys::cty::c_void {
+        unsafe { (*self.system).realloc.unwrap()(ptr, size) }
     }
 
     pub fn log_to_console(&self, text: &str) {

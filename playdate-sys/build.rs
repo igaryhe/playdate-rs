@@ -1,6 +1,7 @@
 extern crate bindgen;
 
 use std::env;
+use std::fs;
 use std::path::PathBuf;
 
 fn main() {
@@ -18,7 +19,9 @@ fn main() {
 }
 
 fn build_arm() -> bindgen::Bindings {
-    let pd_sdk_path = env::var("PLAYDATE_SDK_PATH").unwrap();
+    let config =
+        fs::read_to_string(format!("{}/.Playdate/config", env::var("HOME").unwrap())).unwrap();
+    let pd_sdk_path = config.trim_start_matches("SDKRoot\t").trim_end();
     bindgen::Builder::default()
         .use_core()
         .ctypes_prefix("cty")
@@ -27,7 +30,9 @@ fn build_arm() -> bindgen::Bindings {
         .clang_arg(format!("-I{}C_API", pd_sdk_path))
         .header("wrapper.h")
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))
-        .default_enum_style(bindgen::EnumVariation::Rust{ non_exhaustive: false })
+        .default_enum_style(bindgen::EnumVariation::Rust {
+            non_exhaustive: false,
+        })
         .derive_default(true)
         .derive_eq(true)
         .bitfield_enum("FileOptions")
@@ -41,16 +46,20 @@ fn build_arm() -> bindgen::Bindings {
 }
 
 fn build_x86() -> bindgen::Bindings {
-    let pd_sdk_path = env::var("PLAYDATE_SDK_PATH").unwrap();
-     bindgen::Builder::default()
+    let config =
+        fs::read_to_string(format!("{}/.Playdate/config", env::var("HOME").unwrap())).unwrap();
+    let pd_sdk_path = config.trim_start_matches("SDKRoot\t").trim_end();
+    bindgen::Builder::default()
         .use_core()
         .ctypes_prefix("cty")
         .clang_arg("-DTARGET_EXTENSION=1")
         .clang_arg("-DTARGET_SIMULATOR=1")
-        .clang_arg(format!("-I{}C_API", pd_sdk_path))
+        .clang_arg(format!("-I{}/C_API", pd_sdk_path))
         .header("wrapper.h")
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))
-        .default_enum_style(bindgen::EnumVariation::Rust{ non_exhaustive: false })
+        .default_enum_style(bindgen::EnumVariation::Rust {
+            non_exhaustive: false,
+        })
         .derive_default(true)
         .derive_eq(true)
         .bitfield_enum("FileOptions")

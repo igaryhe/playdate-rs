@@ -2,16 +2,16 @@
 #![feature(alloc_error_handler, core_intrinsics, lang_items)]
 
 pub extern crate playdate_sys as sys;
-use sys::cty;
-use core::ptr;
 use core::alloc::{GlobalAlloc, Layout};
-pub mod system;
+use core::ptr;
+use sys::cty;
+pub mod display;
 pub mod file;
 pub mod graphics;
-pub mod sprite;
-pub mod display;
-pub mod sound;
 pub mod json;
+pub mod sound;
+pub mod sprite;
+pub mod system;
 
 pub struct Playdate {
     system: Option<system::System>,
@@ -21,21 +21,15 @@ pub struct Playdate {
 
 impl Playdate {
     pub fn system() -> system::System {
-        unsafe {
-            PLAYDATE.system.unwrap().clone()
-        }
+        unsafe { PLAYDATE.system.unwrap().clone() }
     }
-    
+
     pub fn display() -> display::Display {
-        unsafe {
-            PLAYDATE.display.unwrap().clone()
-        }
+        unsafe { PLAYDATE.display.unwrap().clone() }
     }
-    
+
     pub fn graphics() -> graphics::Graphics {
-        unsafe {
-            PLAYDATE.graphics.unwrap().clone()
-        }
+        unsafe { PLAYDATE.graphics.unwrap().clone() }
     }
 }
 
@@ -61,11 +55,28 @@ struct State {
 
 impl State {
     pub fn update(&mut self) {
-        Playdate::graphics().clear(graphics::LCDColor::SolidColor(graphics::LCDSolidColor::kColorWhite));
-        Playdate::graphics().draw_text(self.font, ptr::null_mut(), ptr::null_mut(), "Hello World",
-                                       sys::PDStringEncoding::kASCIIEncoding, self.x, self.y,
-                                       sys::LCDBitmapDrawMode::kDrawModeCopy, 0,
-                                       sys::LCDRect { left: 0, right: 0, top: 0, bottom: 0}).unwrap();
+        Playdate::graphics().clear(graphics::LCDColor::SolidColor(
+            graphics::LCDSolidColor::kColorWhite,
+        ));
+        Playdate::graphics()
+            .draw_text(
+                self.font,
+                ptr::null_mut(),
+                ptr::null_mut(),
+                "Hello World",
+                sys::PDStringEncoding::kASCIIEncoding,
+                self.x,
+                self.y,
+                sys::LCDBitmapDrawMode::kDrawModeCopy,
+                0,
+                sys::LCDRect {
+                    left: 0,
+                    right: 0,
+                    top: 0,
+                    bottom: 0,
+                },
+            )
+            .unwrap();
         self.x += self.dx;
         self.y += self.dy;
         if self.x < 0 || self.x > sys::LCD_COLUMNS as i32 - TEXT_WIDTH {
@@ -105,13 +116,21 @@ extern "C" fn update(_ud: *mut cty::c_void) -> cty::c_int {
 }
 
 #[no_mangle]
-extern "C" fn eventHandler(playdate: *mut sys::PlaydateAPI, event: sys::PDSystemEvent, _arg: u32) -> cty::c_int {
+extern "C" fn eventHandler(
+    playdate: *mut sys::PlaydateAPI,
+    event: sys::PDSystemEvent,
+    _arg: u32,
+) -> cty::c_int {
     if event == sys::PDSystemEvent::kEventInit {
         Playdate::new(playdate);
         Playdate::display().set_refresh_rate(20.0).unwrap();
-        Playdate::system().set_update_callback(Some(update), ptr::null_mut()).unwrap();
+        Playdate::system()
+            .set_update_callback(Some(update), ptr::null_mut())
+            .unwrap();
         unsafe {
-            STATE.font = Playdate::graphics().load_font("/System/Fonts/Asheville-Sans-14-Bold.pft").unwrap();
+            STATE.font = Playdate::graphics()
+                .load_font("/System/Fonts/Asheville-Sans-14-Bold.pft")
+                .unwrap();
         }
     }
     0
@@ -131,7 +150,8 @@ unsafe impl GlobalAlloc for PlaydateAllocator {
     }
 
     unsafe fn realloc(&self, ptr: *mut u8, _layout: Layout, new_size: usize) -> *mut u8 {
-        Playdate::system().realloc(ptr as *mut sys::cty::c_void, new_size as sys::cty::c_ulong) as *mut u8
+        Playdate::system().realloc(ptr as *mut sys::cty::c_void, new_size as sys::cty::c_ulong)
+            as *mut u8
     }
 }
 
@@ -165,9 +185,14 @@ fn panic(#[allow(unused)] panic_info: &PanicInfo) -> ! {
         } else {
             "no payload"
         };
-        write!(output, "panic: {} @ {}:{}\0", payload,
-               location.file(), location.line())
-            .expect("write");
+        write!(
+            output,
+            "panic: {} @ {}:{}\0",
+            payload,
+            location.file(),
+            location.line()
+        )
+        .expect("write");
         Playdate::system().log_to_console(output.as_str());
     } else {
         Playdate::system().log_to_console("panic\0");

@@ -9,9 +9,7 @@ pub struct Display {
 
 impl Display {
     pub fn new(display: *mut sys::playdate_display) -> Self {
-        Display {
-            display,
-        }
+        Display { display }
     }
 
     pub fn set_refresh_rate(&self, rate: f32) -> Result<()> {
