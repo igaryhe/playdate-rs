@@ -4,17 +4,26 @@ version = "0.1.0"
 authors = ["Dan <igaryhe@gmail.com>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[package.metadata.cargo-xbuild]
+memcpy = false
+sysroot_path = "target/sysroot"
+panic_immediate_abort = false
 
 [dependencies]
 playdate-sys = { path = "playdate-sys" }
-anyhow = "1.0.34"
-cstr_core = "0.2.2"
+anyhow = { version = "1.0", default-features = false }
+heapless = "0.5.6"
+
+[dependencies.cstr_core]
+version = "0.2"
+default-features = false
+features = [ "alloc" ]
 
 [workspace]
-members = [
-    "playdate-sys"
-]
+members = [ "playdate-sys" ]
 
 [lib]
-crate-type = ["staticlib", "cdylib"]
+crate-type = [  "cdylib", "staticlib" ]
+
+[profile.release]
+panic = "abort"

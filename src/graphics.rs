@@ -7,7 +7,7 @@ pub struct Graphics {
     graphics: *mut sys::playdate_graphics,
 }
 
-// static mut SYSTEM: System = System { system: ptr::null_mut() };
+pub use sys::LCDSolidColor;
 
 impl Graphics {
     pub fn new(graphics: *mut sys::playdate_graphics) -> Self {
@@ -31,7 +31,7 @@ impl Graphics {
     }
 
     pub fn draw_text(&self, font: *mut sys::LCDFont, target: *mut sys::LCDBitmap, stencil: *mut sys::LCDBitmap, text: &str, encoding: sys::PDStringEncoding, x: i32, y: i32, mode: sys::LCDBitmapDrawMode, tracking: i32, clip: sys::LCDRect) -> Result<i32> {
-        let len = text.len() as u64;
+        let len = text.len() as sys::cty::c_ulong;
         let c_str = CString::new(text).unwrap();
         unsafe {
             (*self.graphics).drawText.unwrap()(font, target, stencil, c_str.as_ptr() as *const sys::cty::c_void, len, encoding, x, y, mode, tracking, clip);

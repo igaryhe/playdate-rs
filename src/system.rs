@@ -1,13 +1,12 @@
 use sys;
-// use core::ptr;
+use core::ptr;
 use anyhow::Result;
+use cstr_core::CString;
 
 #[derive(Copy, Clone)]
 pub struct System {
     system: *mut sys::playdate_sys,
 }
-
-// static mut SYSTEM: System = System { system: ptr::null_mut() };
 
 impl System {
     pub fn new(system: *mut sys::playdate_sys) -> Self {
@@ -21,5 +20,21 @@ impl System {
             (*self.system).setUpdateCallback.unwrap()(update, userdata);
         }
         Ok(())
+    }
+
+    pub fn realloc(&self, ptr: *mut sys::cty::c_void, size: sys::cty::c_ulong) -> *mut sys::cty::c_void {
+        unsafe {
+            (*self.system).realloc.unwrap()(ptr, size)
+        }
+    }
+
+    pub fn log_to_console(&self, text: &str) {
+        unsafe {
+            if self.system != ptr::null_mut() {
+                if let Ok(c_text) = CString::new(text) {
+                    (*self.system).logToConsole.unwrap()(c_text.as_ptr() as *mut sys::cty::c_char);
+                }
+            }
+        }
     }
 }
