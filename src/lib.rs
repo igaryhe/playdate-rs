@@ -14,25 +14,25 @@ pub mod alloc;
 #[derive(Copy, Clone)]
 pub struct Playdate {
     system: Option<system::System>,
-    display: Option<display::Display>,
+    file: Option<file::File>,
     graphics: Option<graphics::Graphics>,
+    sprite: Option<sprite::Sprite>,
+    display: Option<display::Display>,
+    sound: Option<sound::Sound>,
+    json: Option<json::Json>,
 }
 
 impl Playdate {
     pub fn playdate() -> Self {
         unsafe { PLAYDATE.clone() }
     }
-    pub fn system(&self) -> system::System {
-        self.system.unwrap().clone()
-    }
-
-    pub fn display(&self) -> display::Display {
-        self.display.unwrap().clone()
-    }
-
-    pub fn graphics(&self) -> graphics::Graphics {
-        self.graphics.unwrap().clone()
-    }
+    pub fn system(&self) -> system::System { self.system.unwrap().clone() }
+    pub fn file(&self) -> file::File { self.file.unwrap().clone() }
+    pub fn graphics(&self) -> graphics::Graphics { self.graphics.unwrap().clone() }
+    pub fn sprite(&self) -> sprite::Sprite { self.sprite.unwrap().clone() }
+    pub fn display(&self) -> display::Display { self.display.unwrap().clone() }
+    pub fn sound(&self) -> sound::Sound { self.sound.unwrap().clone() }
+    pub fn json(&self) -> json::Json { self.json.unwrap().clone() }
 
     pub fn get_system() -> system::System {
         unsafe { PLAYDATE.system.unwrap().clone() }
@@ -49,8 +49,12 @@ impl Playdate {
 
 static mut PLAYDATE: Playdate = Playdate {
     system: None,
-    display: None,
+    file: None,
     graphics: None,
+    sprite: None,
+    display: None,
+    sound: None,
+    json: None,
 };
 
 impl Playdate {
@@ -58,8 +62,12 @@ impl Playdate {
         unsafe {
             PLAYDATE = Playdate {
                 system: Some(system::System::new((*playdate).system)),
-                display: Some(display::Display::new((*playdate).display)),
+                file: Some(file::File::new((*playdate).file)),
                 graphics: Some(graphics::Graphics::new((*playdate).graphics)),
+                sprite: Some(sprite::Sprite::new((*playdate).sprite)),
+                display: Some(display::Display::new((*playdate).display)),
+                sound: Some(sound::Sound::new((*playdate).sound)),
+                json: Some(json::Json::new((*playdate).json)),
             }
         }
     }

@@ -41,4 +41,11 @@ impl System {
             }
         }
     }
+
+    pub fn draw_fps(&self, x: i32, y: i32) -> Result<()> {
+        unsafe {
+            (*self.system).drawFPS.unwrap()(x, y);
+        }
+        Ok(())
+    }
 }

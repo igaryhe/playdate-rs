@@ -54,6 +54,7 @@ impl Game for State {
         if self.y < 0 || self.y > graphics::ROWS as i32 - TEXT_HEIGHT {
             self.dy = -self.dy;
         }
+        playdate.system().draw_fps(0,0);
     }
 }
 

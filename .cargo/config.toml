@@ -7,4 +7,4 @@ features = ["host_dep"]
 rustflags = ["-C", "link-arg=-Tlink_map.ld"]
 
 [build]
-target = "thumbv7em-none-eabihf"
+#target = "thumbv7em-none-eabihf"

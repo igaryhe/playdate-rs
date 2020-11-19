@@ -17,9 +17,6 @@ features = [ "alloc" ]
 [workspace]
 members = [ "playdate-sys" ]
 
-# [lib]
-# crate-type = [ "staticlib", "cdylib" ]
-
 [profile.release]
 panic = "abort"
 opt-level = 'z'
