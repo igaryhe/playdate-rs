@@ -17,8 +17,8 @@ features = [ "alloc" ]
 [workspace]
 members = [ "playdate-sys" ]
 
-[lib]
-crate-type = [ "staticlib", "cdylib" ]
+# [lib]
+# crate-type = [ "staticlib", "cdylib" ]
 
 [profile.release]
 panic = "abort"
@@ -27,3 +27,8 @@ lto = true
 
 [build-dependencies]
 cc = "1.0.0"
+
+[[example]]
+name = "hello_world"
+path = "examples/hello_world.rs"
+crate-type = ["staticlib", "cdylib"]
