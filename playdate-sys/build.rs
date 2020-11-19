@@ -27,9 +27,8 @@ fn build_arm() -> bindgen::Bindings {
         .ctypes_prefix("cty")
         .clang_arg("-DTARGET_EXTENSION=1")
         .clang_arg("-DTARGET_PLAYDATE=1")
-        .clang_arg(format!("-I{}C_API", pd_sdk_path))
+        .clang_arg(format!("-I{}/C_API", pd_sdk_path))
         .header("wrapper.h")
-        .parse_callbacks(Box::new(bindgen::CargoCallbacks))
         .default_enum_style(bindgen::EnumVariation::Rust {
             non_exhaustive: false,
         })
@@ -56,7 +55,6 @@ fn build_x86() -> bindgen::Bindings {
         .clang_arg("-DTARGET_SIMULATOR=1")
         .clang_arg(format!("-I{}/C_API", pd_sdk_path))
         .header("wrapper.h")
-        .parse_callbacks(Box::new(bindgen::CargoCallbacks))
         .default_enum_style(bindgen::EnumVariation::Rust {
             non_exhaustive: false,
         })

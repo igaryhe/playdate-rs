@@ -1,7 +1,6 @@
 * Unofficial Rust binding for Playdate C API
 ** Setup
-- Set $PLAYDATE_SDK_PATH
-- Set $LIBCLANG
-- Copy the build file "libplaydate.dylib" into a ".pdx" folder and run it from the emulator
+- Install cargo make
+- cargo make simulator/device
 ** Caution
-Currently only tested on x86 emulator
+Currently only tested on x86_64-apple-darwin

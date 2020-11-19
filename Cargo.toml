@@ -4,11 +4,6 @@ version = "0.1.0"
 authors = ["Dan <igaryhe@gmail.com>"]
 edition = "2018"
 
-[package.metadata.cargo-xbuild]
-memcpy = false
-sysroot_path = "target/sysroot"
-panic_immediate_abort = false
-
 [dependencies]
 playdate-sys = { path = "playdate-sys" }
 anyhow = { version = "1.0", default-features = false }
@@ -23,7 +18,12 @@ features = [ "alloc" ]
 members = [ "playdate-sys" ]
 
 [lib]
-crate-type = [  "cdylib", "staticlib" ]
+crate-type = [ "staticlib", "cdylib" ]
 
 [profile.release]
 panic = "abort"
+opt-level = 'z'
+lto = true
+
+[build-dependencies]
+cc = "1.0.0"

@@ -1,18 +1,39 @@
 [config]
 default_to_workspace = false
 
-[tasks.build]
+[tasks.build-simulator]
 command = "cargo"
-args = ["build", "--release", "-Zfeatures=host_dep"]
+args = ["build", "--target", "x86_64-apple-darwin", "--release"]
 
-[tasks.post-build]
+[tasks.post-build-simulator]
 script = [
-    "mkdir target/release/source",
-    "touch target/release/source/pdxinfo",
-    "touch target/release/source/pdex.bin",
-    "cp target/release/*.dylib target/release/source/pdex.dylib",
-    "pdc target/release/source target/release/out.pdx"
+    "export RELEASE=target/x86_64-apple-darwin/release",
+    "mkdir -p $RELEASE/source",
+    "touch $RELEASE/source/pdxinfo",
+    "touch $RELEASE/source/pdex.bin",
+    "cp $RELEASE/*.dylib $RELEASE/source/pdex.dylib",
+    "pdc $RELEASE/source $RELEASE/out.pdx"
 ]
 
-[tasks.pdx]
-dependencies = ["build", "post-build"]
+[tasks.simulator]
+dependencies = ["build-simulator", "post-build-simulator"]
+
+[tasks.build-device]
+command = "cargo"
+args = ["build", "--target", "thumbv7em-none-eabihf", "--release"]
+
+[tasks.post-build-device]
+script = [
+    "export PLAYDATE_SDK_PATH=$HOME/Developer/PlaydateSDK",
+    "export C_API=$PLAYDATE_SDK_PATH/C_API",
+    "export RELEASE=target/thumbv7em-none-eabihf/release",
+    "arm-none-eabi-gcc $RELEASE/setup.o $RELEASE/*.a -mthumb -mcpu=cortex-m7 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -D__FPU_USED=1 -Wl,--gc-sections,--no-warn-mismatch -T $C_API/buildsupport/link_map.ld -o $RELEASE/pdex.elf",
+    "arm-none-eabi-objcopy -O binary $RELEASE/pdex.elf $RELEASE/pdex.bin",
+    "mkdir -p $RELEASE/source",
+    "touch $RELEASE/source/pdxinfo",
+    "cp $RELEASE/pdex.bin $RELEASE/source",
+    "pdc $RELEASE/source $RELEASE/out.pdx"
+]
+
+[tasks.device]
+dependencies = ["build-device", "post-build-device"]

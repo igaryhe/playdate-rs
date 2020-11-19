@@ -1,7 +1,8 @@
 #![no_std]
-#![feature(alloc_error_handler, core_intrinsics, lang_items)]
+#![feature(alloc_error_handler, core_intrinsics)]
 
 pub extern crate playdate_sys as sys;
+extern crate alloc;
 use core::alloc::{GlobalAlloc, Layout};
 use core::ptr;
 use sys::cty;
@@ -150,13 +151,12 @@ unsafe impl GlobalAlloc for PlaydateAllocator {
     }
 
     unsafe fn realloc(&self, ptr: *mut u8, _layout: Layout, new_size: usize) -> *mut u8 {
-        Playdate::system().realloc(ptr as *mut sys::cty::c_void, new_size as sys::cty::c_ulong)
-            as *mut u8
+        Playdate::system().realloc(ptr as *mut sys::cty::c_void, new_size as sys::cty::c_ulong) as *mut u8
     }
 }
 
 #[global_allocator]
-static mut ALLOCATOR: PlaydateAllocator = PlaydateAllocator;
+static mut A: PlaydateAllocator = PlaydateAllocator;
 
 #[alloc_error_handler]
 fn alloc_error(_layout: Layout) -> ! {
@@ -202,32 +202,10 @@ fn panic(#[allow(unused)] panic_info: &PanicInfo) -> ! {
         unsafe {
             core::intrinsics::breakpoint();
         }
+        abort_with_addr(0xdeadbeef);
     }
-    abort_with_addr(0xdeadbeef);
-}
-
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-#[no_mangle]
-pub unsafe extern "C" fn memcpy(dest: *mut u8, src: *const u8, n: usize) -> *mut u8 {
-    let mut i = 0;
-    while i < n {
-        *dest.offset(i as isize) = *src.offset(i as isize);
-        i += 1;
+    #[cfg(any(target_arch = "aarch64", target_arch = "arm"))]
+    {
+        abort_with_addr(0xdeadbeef);
     }
-    dest
-}
-
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-#[no_mangle]
-pub unsafe extern "C" fn memcmp(s1: *const u8, s2: *const u8, n: usize) -> i32 {
-    let mut i = 0;
-    while i < n {
-        let a = *s1.offset(i as isize);
-        let b = *s2.offset(i as isize);
-        if a != b {
-            return a as i32 - b as i32;
-        }
-        i += 1;
-    }
-    0
 }
