@@ -1,6 +1,6 @@
-use anyhow::Result;
+use anyhow::{Result, anyhow};
 use core::ptr;
-use cstr_core::CString;
+use cstr_core::{CString, CStr};
 use sys;
 
 pub use sys::LCD_COLUMNS as COLUMNS;
@@ -23,8 +23,13 @@ impl Graphics {
     pub fn load_font(&self, path: &str) -> Result<Font> {
         let c_path = CString::new(path).unwrap();
         unsafe {
-            let font = (*self.graphics).loadFont.unwrap()(c_path.as_ptr(), ptr::null_mut());
-            Ok(Font {font})
+            let out_err = ptr::null_mut();
+            let font = (*self.graphics).loadFont.unwrap()(c_path.as_ptr(), out_err);
+            if out_err.is_null() {
+                Ok(Font::new(font))
+            } else {
+                Err(anyhow!(CStr::from_ptr(*out_err).to_str().unwrap()))
+            }
         }
     }
 
@@ -37,8 +42,8 @@ impl Graphics {
     pub fn draw_text(
         &self,
         font: &Font,
-        target: *mut sys::LCDBitmap,
-        stencil: *mut sys::LCDBitmap,
+        target: Option<Bitmap>,
+        stencil: Option<Bitmap>,
         text: &str,
         encoding: sys::PDStringEncoding,
         x: i32,
@@ -46,14 +51,14 @@ impl Graphics {
         mode: sys::LCDBitmapDrawMode,
         tracking: i32,
         clip: sys::LCDRect,
-    ) -> Result<i32> {
+    ) -> i32 {
         let len = text.len() as sys::cty::c_ulong;
         let c_str = CString::new(text).unwrap();
         unsafe {
             (*self.graphics).drawText.unwrap()(
                 font.font,
-                target,
-                stencil,
+                target.map_or(ptr::null_mut(), |b| b.bitmap),
+                stencil.map_or(ptr::null_mut(), |b| b.bitmap),
                 c_str.as_ptr() as *const sys::cty::c_void,
                 len,
                 encoding,
@@ -62,9 +67,8 @@ impl Graphics {
                 mode,
                 tracking,
                 clip,
-            );
+            )
         }
-        Ok(0)
     }
 }
 
@@ -87,15 +91,25 @@ impl From<Color> for usize {
 
 #[derive(Copy, Clone)]
 pub struct Font {
-    font: *mut sys::LCDFont,
+    pub font: *mut sys::LCDFont,
 }
 
 impl Font {
-    pub fn new(font: *mut sys::LCDFont) -> Result<Self> {
-        Ok(Self {font})
+    pub fn new(font: *mut sys::LCDFont) -> Self {
+        Self { font }
     }
 
     // pub fn get_font_glyph(&self, c: u16) -> Result<(LCDBitmap, u32)> {
         
     // }
+}
+
+pub struct Bitmap {
+    bitmap: *mut sys::LCDBitmap,
+}
+
+impl Bitmap {
+    pub fn new(bitmap: *mut sys::LCDBitmap) -> Self {
+        Bitmap { bitmap }
+    }
 }

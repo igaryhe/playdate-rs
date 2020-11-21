@@ -43,7 +43,7 @@ fn abort_with_addr(addr: usize) -> ! {
 use core::panic::PanicInfo;
 
 #[panic_handler]
-fn panic(#[allow(unused)] panic_info: &PanicInfo) -> ! {
+fn panic(panic_info: &PanicInfo) -> ! {
     use core::fmt::Write;
     use heapless::{consts::*, String};
     if let Some(location) = panic_info.location() {
@@ -61,9 +61,9 @@ fn panic(#[allow(unused)] panic_info: &PanicInfo) -> ! {
             location.line()
         )
         .expect("write");
-        Playdate::get_system().log_to_console(output.as_str());
+        Playdate::get_system().error(output.as_str());
     } else {
-        Playdate::get_system().log_to_console("panic\0");
+        Playdate::get_system().error("panic\0");
     }
     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
     {
@@ -71,5 +71,6 @@ fn panic(#[allow(unused)] panic_info: &PanicInfo) -> ! {
             core::intrinsics::breakpoint();
         }
     }
-    abort_with_addr(0xdeadbeef)
+    loop {}
+    // abort_with_addr(0xdeadbeef)
 }

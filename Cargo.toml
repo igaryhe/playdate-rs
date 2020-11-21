@@ -8,11 +8,7 @@ edition = "2018"
 playdate-sys = { path = "playdate-sys" }
 anyhow = { version = "1.0", default-features = false }
 heapless = "0.5.6"
-
-[dependencies.cstr_core]
-version = "0.2"
-default-features = false
-features = [ "alloc" ]
+cstr_core = { version = "0.2", default-features = false, features = ["alloc"] }
 
 [workspace]
 members = [ "playdate-sys" ]

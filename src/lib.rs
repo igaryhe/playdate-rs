@@ -2,6 +2,7 @@
 #![feature(alloc_error_handler, core_intrinsics, link_args)]
 
 pub extern crate playdate_sys as sys;
+use sys::PlaydateAPI;
 pub mod display;
 pub mod file;
 pub mod graphics;
@@ -58,7 +59,7 @@ static mut PLAYDATE: Playdate = Playdate {
 };
 
 impl Playdate {
-    pub fn new(playdate: *mut sys::PlaydateAPI) {
+    pub fn new(playdate: *mut PlaydateAPI) {
         unsafe {
             PLAYDATE = Playdate {
                 system: Some(system::System::new((*playdate).system)),
@@ -80,9 +81,11 @@ pub trait Game {
 
 #[macro_export]
 macro_rules! start_game {
-    ($state:tt, $default:expr) => (
-        static mut STATE: $state = $default;
-        extern "C" fn update(_ud: *mut sys::cty::c_void) -> sys::cty::c_int {
+    ($state:tt) => (
+        use sys::{cty, PDSystemEvent, PlaydateAPI};
+        static mut STATE: $state = $state::default();
+        
+        extern "C" fn update(_ud: *mut cty::c_void) -> cty::c_int {
             unsafe{
                 STATE.update(&mut Playdate::playdate());
             }
@@ -90,14 +93,12 @@ macro_rules! start_game {
         }
 
         #[no_mangle]
-        extern "C" fn eventHandler(playdate: *mut sys::PlaydateAPI,
-            event: sys::PDSystemEvent, _arg: u32,) -> sys::cty::c_int {
-            if event == sys::PDSystemEvent::kEventInit {
+        extern "C" fn eventHandler(playdate: *mut PlaydateAPI,
+            event: PDSystemEvent, _arg: u32,) -> cty::c_int {
+            if event == PDSystemEvent::kEventInit {
                 Playdate::new(playdate);
-                Playdate::get_display().set_refresh_rate(20.0).unwrap();
-                Playdate::get_system()
-                    .set_update_callback(Some(update), ptr::null_mut())
-                    .unwrap();
+                Playdate::get_display().set_refresh_rate(20.0);
+                Playdate::get_system().set_update_callback(Some(update));
                 unsafe {
                     STATE.init(&mut Playdate::playdate());
                 }
