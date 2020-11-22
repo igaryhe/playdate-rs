@@ -5,10 +5,16 @@ use sys;
 
 pub use sys::LCD_COLUMNS as COLUMNS;
 pub use sys::LCD_ROWS as ROWS;
-pub use sys::LCDSolidColor as SolidColor;
+pub use sys::LCD_ROWSIZE as ROWSIZE;
+
 pub use sys::LCDBitmapDrawMode as BitmapDrawMode;
-pub use sys::PDStringEncoding;
+pub use sys::LCDBitmapFlip as BitmapFlip;
+pub use sys::LCDSolidColor as SolidColor;
+pub use sys::LCDLineCapStyle as LineCapStyle;
+pub use sys::LCDFontLanguage as FontLanguage;
+pub use sys::PDStringEncoding as StringEncoding;
 pub use sys::LCDRect as Rect;
+pub use sys::LCDSprite as Sprite;
 
 #[derive(Copy, Clone)]
 pub struct Graphics {

@@ -4,6 +4,8 @@ use sys;
 
 pub use sys::PDPeripherals as Peripherals;
 pub use sys::PDButtons as Buttons;
+pub use sys::PDCallbackFunction as CallbackFunction;
+pub use sys::PDLanguage as Language;
 
 #[derive(Copy, Clone)]
 pub struct System {
@@ -15,9 +17,15 @@ impl System {
         System { system }
     }
 
-    pub fn set_update_callback(&self, update: sys::PDCallbackFunction) {
+    pub fn set_update_callback(&self, update: CallbackFunction) {
         unsafe {
             (*self.system).setUpdateCallback.unwrap()(update, ptr::null_mut());
+        }
+    }
+
+    pub fn set_options_callback(&self, update: CallbackFunction) {
+        unsafe {
+            (*self.system).setOptionsCallback.unwrap()(update, ptr::null_mut());
         }
     }
 
@@ -60,9 +68,9 @@ impl System {
 
     pub fn get_accelerometer(&self) -> (f32, f32, f32) {
         unsafe {
-            let mut outx: *mut f32 = ptr::null_mut();
-            let mut outy: *mut f32 = ptr::null_mut();
-            let mut outz: *mut f32 = ptr::null_mut();
+            let outx: *mut f32 = ptr::null_mut();
+            let outy: *mut f32 = ptr::null_mut();
+            let outz: *mut f32 = ptr::null_mut();
             (*self.system).getAccelerometer.unwrap()(outx, outy, outz);
             (*outx, *outy, *outz)
         }
@@ -97,6 +105,37 @@ impl System {
             (*self.system).getButtonState
                 .unwrap()(&mut current, &mut pushed, &mut released);
             (current, pushed, released)
+        }
+    }
+
+    pub fn get_language(&self) -> Language {
+        unsafe {
+            (*self.system).getLanguage.unwrap()()
+        }
+    }
+
+    pub fn get_current_time_ms(&self) -> u32 {
+        unsafe {
+            (*self.system).getCurrentTimeMilliseconds
+                .unwrap()()
+        }
+    }
+
+    pub fn get_seconds_since_epoch(&self) -> (u32, u32) {
+        let mut ms = 0;
+        unsafe {
+            let s = (*self.system).getSecondsSinceEpoch
+                .unwrap()(&mut ms);
+            (s, ms)
+        }
+    }
+
+    pub fn get_flipped(&self) -> bool {
+        unsafe {
+            match (*self.system).getFlipped.unwrap()() {
+                1 => true,
+                _ => false,
+            }
         }
     }
 }
