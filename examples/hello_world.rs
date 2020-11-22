@@ -1,9 +1,8 @@
 #![no_std]
-#![feature(const_trait_impl)]
 
 use playdate::*;
 use playdate::graphics;
-use core::ptr;
+use anyhow::Result;
 
 const INIT_X: i32 = (400 - TEXT_WIDTH) / 2;
 const INIT_Y: i32 = (240 - TEXT_HEIGHT) / 2;
@@ -11,6 +10,7 @@ const INIT_Y: i32 = (240 - TEXT_HEIGHT) / 2;
 const TEXT_WIDTH: i32 = 86;
 const TEXT_HEIGHT: i32 = 16;
 
+#[derive(Default, Copy, Clone)]
 struct State {
     x: i32,
     y: i32,
@@ -19,30 +19,18 @@ struct State {
     font: graphics::Font,
 }
 
-impl const Default for State {
-    fn default() -> Self {
+impl Game for State {
+    fn init(playdate: &mut Playdate) -> Self {
         Self {
-            x: 0,
-            y: 0,
-            dx: 0,
-            dy: 0,
-            font: graphics::Font {
-                font: ptr::null_mut()
-            }
+            x: INIT_X,
+            y: INIT_Y,
+            dx: 1,
+            dy: 2,
+            font: playdate.graphics()
+                .load_font("/System/Fonts/Asheville-Sans-14-Bold.pft").unwrap(),
         }
     }
-}
-
-impl Game for State {
-    fn init(&mut self, playdate: &mut Playdate) {
-        self.x = INIT_X;
-        self.y = INIT_Y;
-        self.dx = 1;
-        self.dy = 2;
-        self.font = playdate.graphics()
-            .load_font("/System/Fonts/Asheville-Sans-14-Bold.pft").unwrap();
-    }
-    fn update(&mut self, playdate: &mut Playdate) {
+    fn update(&mut self, playdate: &mut Playdate) -> Result<()> {
         playdate.graphics().clear(graphics::Color::SolidColor(
             graphics::SolidColor::kColorWhite));
         playdate.graphics()
@@ -51,7 +39,7 @@ impl Game for State {
                 None,
                 None,
                 "hello rust",
-                graphics::PDStringEncoding::kASCIIEncoding,
+                graphics::StringEncoding::kASCIIEncoding,
                 self.x,
                 self.y,
                 graphics::BitmapDrawMode::kDrawModeCopy,
@@ -68,6 +56,7 @@ impl Game for State {
             self.dy = -self.dy;
         }
         playdate.system().draw_fps(0, 0);
+        Ok(())
     }
 }
 

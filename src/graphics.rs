@@ -1,5 +1,5 @@
-use anyhow::{Result, anyhow};
-use core::ptr;
+use anyhow::{Result, anyhow, ensure};
+use core::{ptr, ops::RangeInclusive, slice};
 use cstr_core::{CString, CStr};
 use sys;
 
@@ -76,6 +76,31 @@ impl Graphics {
             )
         }
     }
+
+    pub fn mark_updated_rows(&self, range: RangeInclusive<i32>) {
+        let (start, end) = range.into_inner();
+        unsafe {
+            (*self.graphics).markUpdatedRows.unwrap()(start, end);
+        }
+    }
+
+    pub fn get_frame(&self) -> Result<&'static mut [u8]> {
+        unsafe {
+            let ptr = (*self.graphics).getFrame.unwrap()();
+            ensure!(!ptr.is_null(), {"Null pointer from get_frame"});
+            let frame = slice::from_raw_parts_mut(ptr, (ROWSIZE * ROWS) as usize);
+            Ok(frame)
+        }
+    }
+
+    pub fn get_display_frame(&self) -> Result<&'static mut [u8]> {
+        unsafe {
+            let ptr = (*self.graphics).getDisplayFrame.unwrap()();
+            ensure!(!ptr.is_null(), {"Null pointer from get_frame"});
+            let frame = slice::from_raw_parts_mut(ptr, (ROWSIZE * ROWS) as usize);
+            Ok(frame)
+        }
+    }
 }
 
 pub enum Color {
@@ -108,6 +133,12 @@ impl Font {
     // pub fn get_font_glyph(&self, c: u16) -> Result<(LCDBitmap, u32)> {
         
     // }
+}
+
+impl Default for Font {
+    fn default() -> Self {
+        Self { font: ptr::null_mut() }
+    }
 }
 
 pub struct Bitmap {

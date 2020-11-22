@@ -3,6 +3,7 @@
 
 pub extern crate playdate_sys as sys;
 use sys::PlaydateAPI;
+use anyhow::Result;
 pub mod display;
 pub mod file;
 pub mod graphics;
@@ -10,7 +11,6 @@ pub mod json;
 pub mod sound;
 pub mod sprite;
 pub mod system;
-// pub mod alloc;
 
 extern crate alloc;
 use core::alloc::{GlobalAlloc, Layout};
@@ -55,6 +55,10 @@ impl Playdate {
     pub fn get_filesystem() -> file::Filesystem {
         unsafe { PLAYDATE.filesystem.unwrap().clone() }
     }
+    
+    pub fn get_sound() -> sound::Sound {
+        unsafe { PLAYDATE.sound.unwrap().clone() }
+    }
 }
 
 static mut PLAYDATE: Playdate = Playdate {
@@ -84,19 +88,24 @@ impl Playdate {
 }
 
 pub trait Game {
-    fn init(&mut self, playdate: &mut Playdate);
-    fn update(&mut self, playdate: &mut Playdate);
+    fn init(playdate: &mut Playdate) -> Self;
+    fn update(&mut self, playdate: &mut Playdate) -> Result<()>;
 }
 
 #[macro_export]
 macro_rules! start_game {
     ($state:tt) => (
+        extern crate alloc;
+        use alloc::boxed::Box;
         use sys::{cty, PDSystemEvent, PlaydateAPI};
-        static mut STATE: $state = $state::default();
+        static mut STATE: Option<$state> = None;
         
         extern "C" fn update(_ud: *mut cty::c_void) -> cty::c_int {
             unsafe{
-                STATE.update(&mut Playdate::playdate());
+                STATE = STATE.map(|mut s| {
+                    s.update(&mut Playdate::playdate()).unwrap();
+                    s
+                });
             }
             1
         }
@@ -109,7 +118,8 @@ macro_rules! start_game {
                 Playdate::get_display().set_refresh_rate(20.0);
                 Playdate::get_system().set_update_callback(Some(update));
                 unsafe {
-                    STATE.init(&mut Playdate::playdate());
+                    // STATE.init(&mut Playdate::playdate());
+                    STATE = Some($state::init(&mut Playdate::playdate()));
                 }
             }
             0
