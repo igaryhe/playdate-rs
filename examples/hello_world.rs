@@ -3,10 +3,7 @@
 use playdate::*;
 use playdate::graphics;
 use anyhow::Result;
-use alloc::vec::Vec;
-
 use serde::{Serialize, Deserialize};
-use serde_json::*;
 
 const INIT_X: i32 = (400 - TEXT_WIDTH) / 2;
 const INIT_Y: i32 = (240 - TEXT_HEIGHT) / 2;
@@ -33,15 +30,11 @@ struct Des {
 
 impl Game for State {
     fn init(playdate: &mut Playdate) -> Self {
-        let mut file = playdate.filesystem()
-            .open("test.json", file::FileOptions::kFileRead).unwrap();
-        let mut array: [u8; 100] = [0; 100];
-        let len = file.read(&mut array).unwrap() - 1;
-        let des: Des = from_slice(&array[0..len as usize]).unwrap();
+        let mut des: Des = json::from_file("test.json").unwrap();
         Self {
             x: INIT_X,
             y: INIT_Y,
-            dx: des.dx,
+            dx: 1,
             dy: 2,
             font: playdate.graphics()
                 .load_font("/System/Fonts/Asheville-Sans-14-Bold.pft").unwrap(),
