@@ -22,7 +22,7 @@ impl Filesystem {
         let c_path = CString::new(path).map_err(Error::msg)?;
         unsafe {
             let file = (*self.fs).open.unwrap()(c_path.as_ptr(), mode);
-            ensure!(file.is_null(), "Error open {}", path);
+            ensure!(!file.is_null(), "Error open {}", path);
             Ok(File { file })
         }
     }

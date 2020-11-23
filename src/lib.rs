@@ -195,3 +195,19 @@ fn panic(panic_info: &PanicInfo) -> ! {
     }
     abort_with_addr(0xdeadbeef)
 }
+
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+pub unsafe fn memset_internal(s: *mut u8, c: cty::c_int, n: usize) -> *mut u8 {
+    let mut i = 0;
+    while i < n {
+        *s.offset(i as isize) = c as u8;
+        i += 1;
+    }
+    s
+}
+
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+#[no_mangle]
+pub unsafe extern "C" fn __bzero(s: *mut u8, n: usize) {
+    memset_internal(s, 0, n);
+}
