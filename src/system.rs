@@ -9,23 +9,17 @@ pub use sys::PDLanguage as Language;
 
 #[derive(Copy, Clone)]
 pub struct System {
-    system: *mut sys::playdate_sys,
+    system: *const sys::playdate_sys,
 }
 
 impl System {
-    pub fn new(system: *mut sys::playdate_sys) -> Self {
+    pub fn new(system: *const sys::playdate_sys) -> Self {
         System { system }
     }
 
     pub fn set_update_callback(&self, update: CallbackFunction) {
         unsafe {
             (*self.system).setUpdateCallback.unwrap()(update, ptr::null_mut());
-        }
-    }
-
-    pub fn set_options_callback(&self, update: CallbackFunction) {
-        unsafe {
-            (*self.system).setOptionsCallback.unwrap()(update, ptr::null_mut());
         }
     }
 
@@ -133,6 +127,21 @@ impl System {
     pub fn get_flipped(&self) -> bool {
         unsafe {
             match (*self.system).getFlipped.unwrap()() {
+                1 => true,
+                _ => false,
+            }
+        }
+    }
+
+    pub fn set_auto_lock_disabled(&self, enable: bool) {
+        unsafe {
+            (*self.system).setAutoLockDisabled.unwrap()(enable as i32)
+        }
+    }
+
+    pub fn set_crank_sounds_disabled(&self, flag: bool) -> bool {
+        unsafe {
+            match (*self.system).setCrankSoundsDisabled.unwrap()(flag as i32) {
                 1 => true,
                 _ => false,
             }

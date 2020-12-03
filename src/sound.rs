@@ -9,47 +9,35 @@ pub use sys::SoundFormat as Format;
 
 #[derive(Copy, Clone)]
 pub struct Sound {
-    sound: *mut sys::playdate_sound,
+    sound: *const sys::playdate_sound,
 }
 
 impl Sound {
-    pub fn new(sound: *mut sys::playdate_sound) -> Self {
+    pub fn new(sound: *const sys::playdate_sound) -> Self {
         Self { sound }
     }
 
-    unsafe fn get_fileplayer(&self) -> *mut sys::playdate_sound_fileplayer {
+    unsafe fn get_fileplayer(&self) -> *const sys::playdate_sound_fileplayer {
             (*self.sound).fileplayer
     }
 
-    unsafe fn get_sampleplayer(&self) -> *mut sys::playdate_sound_sampleplayer {
+    unsafe fn get_sampleplayer(&self) -> *const sys::playdate_sound_sampleplayer {
             (*self.sound).sampleplayer
     }
 
-    unsafe fn get_sample(&self) -> *mut sys::playdate_sound_sample {
+    unsafe fn get_sample(&self) -> *const sys::playdate_sound_sample {
             (*self.sound).sample
-    }
-
-    pub fn start(&self) {
-        unsafe {
-            (*self.sound).start.unwrap()()
-        }
-    }
-
-    pub fn stop(&self) {
-        unsafe {
-            (*self.sound).stop.unwrap()()
-        }
     }
 }
 
 pub trait Player {
     fn set_volume(&mut self, left: f32, right: f32);
-    fn get_volume(&self) -> (f32, f32);
-    fn get_length(&self) -> f32;
+    fn volume(&self) -> (f32, f32);
+    fn length(&self) -> f32;
     fn set_offset(&mut self, offset: f32);
-    fn get_offset(&self) -> f32;
+    fn offset(&self) -> f32;
     fn set_rate(&mut self, rate: f32);
-    fn get_rate(&self) -> f32;
+    fn rate(&self) -> f32;
     fn is_playing(&self) -> bool;
     fn set_finish_callback(&mut self, callback: Callback);
     fn set_loop_callback(&mut self, callback: Callback);
@@ -74,16 +62,6 @@ impl FilePlayer {
         unsafe {
             let fp = *Playdate::get_sound().get_fileplayer();
             let result = fp.newPlayer.unwrap()(buffer_size);
-            ensure!(result != ptr::null_mut(), "FilePlayer failed to create");
-            Ok(FilePlayer { fp: result })
-        }
-    }
-
-    fn load_file(path: &str, buffer_len: f32) -> Result<FilePlayer> {
-        unsafe {
-            let fp = *Playdate::get_sound().get_fileplayer();
-            let c_path = CString::new(path).unwrap();
-            let result = fp.loadFile.unwrap()(c_path.as_ptr(), buffer_len);
             ensure!(result != ptr::null_mut(), "FilePlayer failed to create");
             Ok(FilePlayer { fp: result })
         }
@@ -167,7 +145,7 @@ impl Player for FilePlayer {
         }
     }
 
-    fn get_volume(&self) -> (f32, f32) {
+    fn volume(&self) -> (f32, f32) {
         unsafe {
             let left = ptr::null_mut();
             let right = ptr::null_mut();
@@ -177,7 +155,7 @@ impl Player for FilePlayer {
         }
     }
 
-    fn get_length(&self) -> f32 {
+    fn length(&self) -> f32 {
         unsafe {
             let fp = *Playdate::get_sound().get_fileplayer();
             fp.getLength.unwrap()(self.fp)
@@ -191,7 +169,7 @@ impl Player for FilePlayer {
         }
     }
 
-    fn get_offset(&self) -> f32 {
+    fn offset(&self) -> f32 {
         unsafe {
             let fp = *Playdate::get_sound().get_fileplayer();
             fp.getOffset.unwrap()(self.fp)
@@ -205,7 +183,7 @@ impl Player for FilePlayer {
         }
     }
 
-    fn get_rate(&self) -> f32 {
+    fn rate(&self) -> f32 {
         unsafe {
             let fp = *Playdate::get_sound().get_fileplayer();
             fp.getRate.unwrap()(self.fp)
@@ -289,7 +267,7 @@ impl Player for SamplePlayer {
         }
     }
 
-    fn get_volume(&self) -> (f32, f32) {
+    fn volume(&self) -> (f32, f32) {
         unsafe {
             let left = ptr::null_mut();
             let right = ptr::null_mut();
@@ -299,7 +277,7 @@ impl Player for SamplePlayer {
         }
     }
 
-    fn get_length(&self) -> f32 {
+    fn length(&self) -> f32 {
         unsafe {
             let sp = *Playdate::get_sound().get_sampleplayer();
             sp.getLength.unwrap()(self.sp)
@@ -313,7 +291,7 @@ impl Player for SamplePlayer {
         }
     }
 
-    fn get_offset(&self) -> f32 {
+    fn offset(&self) -> f32 {
         unsafe {
             let sp = *Playdate::get_sound().get_sampleplayer();
             sp.getOffset.unwrap()(self.sp)
@@ -327,7 +305,7 @@ impl Player for SamplePlayer {
         }
     }
 
-    fn get_rate(&self) -> f32 {
+    fn rate(&self) -> f32 {
         unsafe {
             let sp = *Playdate::get_sound().get_sampleplayer();
             sp.getRate.unwrap()(self.sp)
@@ -404,7 +382,7 @@ impl Sample {
         }
     }
 
-    pub fn get_length(&self) -> f32 {
+    pub fn length(&self) -> f32 {
         unsafe {
             let sample = *Playdate::get_sound().get_sample();
             sample.getLength.unwrap()(self.sample)

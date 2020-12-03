@@ -17,7 +17,6 @@ struct State {
     y: i32,
     dx: i32,
     dy: i32,
-    font: graphics::Font,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -30,14 +29,13 @@ struct Des {
 
 impl Game for State {
     fn init(playdate: &mut Playdate) -> Self {
-        let mut des: Des = json::from_file("test.json").unwrap();
+        let font = graphics::Font::load("/System/Fonts/Asheville-Sans-14-Bold.pft").unwrap();
+        playdate.graphics().set_font(font);
         Self {
             x: INIT_X,
             y: INIT_Y,
             dx: 1,
             dy: 2,
-            font: playdate.graphics()
-                .load_font("/System/Fonts/Asheville-Sans-14-Bold.pft").unwrap(),
         }
     }
     fn update(&mut self, playdate: &mut Playdate) -> Result<()> {
@@ -45,24 +43,17 @@ impl Game for State {
             graphics::SolidColor::kColorWhite));
         playdate.graphics()
             .draw_text(
-                &self.font,
-                None,
-                None,
                 "hello rust",
                 graphics::StringEncoding::kASCIIEncoding,
                 self.x,
                 self.y,
-                graphics::BitmapDrawMode::kDrawModeCopy,
-                0,
-                graphics::Rect::default(),
             );
         self.x += self.dx;
         self.y += self.dy;
-        let changed = playdate.system().get_crank_change();
-        if changed < 0.0 || self.x < 0 || self.x > graphics::COLUMNS as i32 - TEXT_WIDTH {
+        if self.x < 0 || self.x > graphics::COLUMNS as i32 - TEXT_WIDTH {
             self.dx = -self.dx;
         }
-        if changed < 0.0 || self.y < 0 || self.y > graphics::ROWS as i32 - TEXT_HEIGHT {
+        if self.y < 0 || self.y > graphics::ROWS as i32 - TEXT_HEIGHT {
             self.dy = -self.dy;
         }
         playdate.system().draw_fps(0, 0);

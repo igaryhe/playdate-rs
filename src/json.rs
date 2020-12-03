@@ -1,21 +1,9 @@
-use sys;
-use serde::{Serialize, Deserialize};
+use serde::Serialize;
 use serde::de::DeserializeOwned;
 use serde_json;
 use anyhow::{Result, Error};
 use crate::Playdate;
 use crate::file;
-
-#[derive(Copy, Clone)]
-pub struct Json {
-    json: *mut sys::playdate_json,
-}
-
-impl Json {
-    pub fn new(json: *mut sys::playdate_json) -> Self {
-        Self { json }
-    }
-}
 
 pub fn from_file<T: DeserializeOwned>(path: &str) -> Result<T> {
     let mut file = Playdate::get_filesystem()

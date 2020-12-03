@@ -3,18 +3,18 @@ use sys::cty;
 use crate::Playdate;
 use anyhow::{Result, Error, ensure};
 use alloc::format;
-use cstr_core::CString;
+use cstr_core::{CString, CStr};
 
 pub use sys::FileOptions;
 pub use sys::FileStat;
 
 #[derive(Copy, Clone)]
 pub struct Filesystem {
-    fs: *mut sys::playdate_file,
+    fs: *const sys::playdate_file,
 }
 
 impl Filesystem {
-    pub fn new(fs: *mut sys::playdate_file) -> Self {
+    pub fn new(fs: *const sys::playdate_file) -> Self {
         Self { fs }
     }
 
@@ -63,6 +63,14 @@ impl Filesystem {
             ensure!(result == 0, "Error {} from rename", result);
         }
         Ok(())
+    }
+
+    pub fn get_err(&self) -> Result<&str> {
+        unsafe {
+            let ptr = (*self.fs).geterr.unwrap()();
+            ensure!(!ptr.is_null(), "no previous error");
+            Ok(CStr::from_ptr(ptr).to_str().map_err(Error::msg)?)
+        }
     }
 }
 

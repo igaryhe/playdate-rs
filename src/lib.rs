@@ -22,10 +22,9 @@ pub struct Playdate {
     system: Option<system::System>,
     filesystem: Option<file::Filesystem>,
     graphics: Option<graphics::Graphics>,
-    sprite: Option<sprite::Sprite>,
+    sprite: Option<sprite::PDSprite>,
     display: Option<display::Display>,
     sound: Option<sound::Sound>,
-    json: Option<json::Json>,
 }
 
 impl Playdate {
@@ -35,10 +34,9 @@ impl Playdate {
     pub fn system(&self) -> system::System { self.system.unwrap().clone() }
     pub fn filesystem(&self) -> file::Filesystem { self.filesystem.unwrap().clone() }
     pub fn graphics(&self) -> graphics::Graphics { self.graphics.unwrap().clone() }
-    pub fn sprite(&self) -> sprite::Sprite { self.sprite.unwrap().clone() }
+    pub fn sprite(&self) -> sprite::PDSprite { self.sprite.unwrap().clone() }
     pub fn display(&self) -> display::Display { self.display.unwrap().clone() }
     pub fn sound(&self) -> sound::Sound { self.sound.unwrap().clone() }
-    pub fn json(&self) -> json::Json { self.json.unwrap().clone() }
 
     pub fn get_system() -> system::System {
         unsafe { PLAYDATE.system.unwrap().clone() }
@@ -59,6 +57,10 @@ impl Playdate {
     pub fn get_sound() -> sound::Sound {
         unsafe { PLAYDATE.sound.unwrap().clone() }
     }
+
+    pub fn get_sprite() -> sprite::PDSprite {
+        unsafe { PLAYDATE.sprite.unwrap().clone() }
+    }
 }
 
 static mut PLAYDATE: Playdate = Playdate {
@@ -68,7 +70,6 @@ static mut PLAYDATE: Playdate = Playdate {
     sprite: None,
     display: None,
     sound: None,
-    json: None,
 };
 
 impl Playdate {
@@ -78,10 +79,9 @@ impl Playdate {
                 system: Some(system::System::new((*playdate).system)),
                 filesystem: Some(file::Filesystem::new((*playdate).file)),
                 graphics: Some(graphics::Graphics::new((*playdate).graphics)),
-                sprite: Some(sprite::Sprite::new((*playdate).sprite)),
+                sprite: Some(sprite::PDSprite::new((*playdate).sprite)),
                 display: Some(display::Display::new((*playdate).display)),
                 sound: Some(sound::Sound::new((*playdate).sound)),
-                json: Some(json::Json::new((*playdate).json)),
             }
         }
     }
@@ -118,7 +118,6 @@ macro_rules! start_game {
                 Playdate::get_display().set_refresh_rate(20.0);
                 Playdate::get_system().set_update_callback(Some(update));
                 unsafe {
-                    // STATE.init(&mut Playdate::playdate());
                     STATE = Some($state::init(&mut Playdate::playdate()));
                 }
             }
