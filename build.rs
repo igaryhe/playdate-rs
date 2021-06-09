@@ -4,8 +4,7 @@ use cc;
 
 fn main() {
     let arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
-    let config = fs::read_to_string(format!("{}/.Playdate/config", env::var("HOME").unwrap())).unwrap();
-    let pd_sdk_path = config.trim_start_matches("SDKRoot\t").trim_end();
+    let pd_sdk_path = env::var("PLAYDATE_SDK").unwrap();
     if arch == "arm" || arch == "aarch64" {
         // fs::copy(format!("{}/C_API/buildsupport/link_map.ld", pd_sdk_path),
         //          format!("{}/link_map.ld", env::var("OUT_DIR").unwrap())).unwrap();
