@@ -1,5 +1,5 @@
 #![no_std]
-#![feature(alloc_error_handler, core_intrinsics, link_args)]
+#![feature(alloc_error_handler, core_intrinsics)]
 
 pub extern crate playdate_sys as sys;
 use sys::PlaydateAPI;
@@ -195,18 +195,12 @@ fn panic(panic_info: &PanicInfo) -> ! {
     abort_with_addr(0xdeadbeef)
 }
 
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-pub unsafe fn memset_internal(s: *mut u8, c: cty::c_int, n: usize) -> *mut u8 {
-    let mut i = 0;
-    while i < n {
-        *s.offset(i as isize) = c as u8;
-        i += 1;
-    }
-    s
-}
+#[cfg(all(windows, target_env = "gnu"))]
+pub mod eh_frame_registry
+{
+    #[no_mangle]
+    pub extern "C" fn rust_eh_register_frames() {}
 
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-#[no_mangle]
-pub unsafe extern "C" fn __bzero(s: *mut u8, n: usize) {
-    memset_internal(s, 0, n);
+    #[no_mangle]
+    pub extern "C" fn rust_eh_unregister_frames() {}
 }

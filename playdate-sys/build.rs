@@ -19,9 +19,7 @@ fn main() {
 }
 
 fn build_arm() -> bindgen::Bindings {
-    let config =
-        fs::read_to_string(format!("{}/.Playdate/config", env::var("HOME").unwrap())).unwrap();
-    let pd_sdk_path = config.trim_start_matches("SDKRoot\t").trim_end();
+    let pd_sdk_path = env::var("PLAYDATE_SDK").unwrap();
     bindgen::Builder::default()
         .use_core()
         .ctypes_prefix("cty")
@@ -45,9 +43,7 @@ fn build_arm() -> bindgen::Bindings {
 }
 
 fn build_x86() -> bindgen::Bindings {
-    let config =
-        fs::read_to_string(format!("{}/.Playdate/config", env::var("HOME").unwrap())).unwrap();
-    let pd_sdk_path = config.trim_start_matches("SDKRoot\t").trim_end();
+    let pd_sdk_path = env::var("PLAYDATE_SDK").unwrap();
     bindgen::Builder::default()
         .use_core()
         .ctypes_prefix("cty")

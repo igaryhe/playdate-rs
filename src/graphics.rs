@@ -196,7 +196,7 @@ impl Graphics {
         unsafe {
             (*self.graphics).drawText.unwrap()(
                 c_str.as_ptr() as *const sys::cty::c_void,
-                len, encoding, x, y)
+                len.into(), encoding, x, y)
         }
     }
 }

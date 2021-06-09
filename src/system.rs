@@ -26,7 +26,7 @@ impl System {
     pub fn realloc(&self, ptr: *mut sys::cty::c_void,
                    size: sys::cty::c_ulong) -> *mut sys::cty::c_void {
         unsafe {
-            (*self.system).realloc.unwrap()(ptr, size)
+            (*self.system).realloc.unwrap()(ptr, size.into())
         }
     }
 
