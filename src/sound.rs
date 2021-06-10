@@ -61,7 +61,7 @@ impl FilePlayer {
     fn new(buffer_size: i32) -> Result<FilePlayer> {
         unsafe {
             let fp = *Playdate::get_sound().get_fileplayer();
-            let result = fp.newPlayer.unwrap()(buffer_size);
+            let result = fp.newPlayer.unwrap()();
             ensure!(result != ptr::null_mut(), "FilePlayer failed to create");
             Ok(FilePlayer { fp: result })
         }
