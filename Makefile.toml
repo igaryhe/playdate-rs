@@ -3,7 +3,7 @@ default_to_workspace = false
 
 [tasks.build-simulator]
 command = "cargo"
-args = ["build", "--release", "--example", "hello_world"]
+args = ["build", "--release", "--target", "i686-pc-windows-msvc", "--example", "hello_world"]
 
 [tasks.post-build-simulator]
 script = [

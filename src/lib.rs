@@ -155,9 +155,7 @@ fn alloc_error(_layout: Layout) -> ! {
 
 fn abort_with_addr(addr: usize) -> ! {
     let p = addr as *mut i32;
-    unsafe {
-        *p = 0;
-    }
+    unsafe { *p = 0 };
     core::intrinsics::abort()
 }
 
@@ -166,9 +164,9 @@ use core::panic::PanicInfo;
 #[panic_handler]
 fn panic(panic_info: &PanicInfo) -> ! {
     use core::fmt::Write;
-    use heapless::{consts::*, String};
+    use heapless::String;
     if let Some(location) = panic_info.location() {
-        let mut output: String<U1024> = String::new();
+        let mut output: String<1024> = String::new();
         let payload = if let Some(payload) = panic_info.payload().downcast_ref::<&str>() {
             payload
         } else {
@@ -181,7 +179,7 @@ fn panic(panic_info: &PanicInfo) -> ! {
             location.file(),
             location.line()
         )
-        .expect("write");
+            .expect("write");
         Playdate::get_system().error(output.as_str());
     } else {
         Playdate::get_system().error("panic\0");
