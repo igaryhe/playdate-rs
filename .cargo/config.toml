@@ -1,7 +1,2 @@
-[unstable]
-build-std = ["core", "compiler_builtins", "alloc"]
-build-std-features = ["compiler-builtins-mem"]
-features = ["host_dep"]
-
-# [build]
-# target = "thumbv7em-none-eabihf"
+[target.x86_64-apple-darwin]
+linker = "./zcc"

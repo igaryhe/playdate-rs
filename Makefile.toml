@@ -29,7 +29,7 @@ fn main() {
     let out = Path::new("target/x86_64-apple-darwin/release/examples");
     fs::create_dir_all(out.join("out.pdx")).unwrap();
     fs::OpenOptions::new().create(true).write(true).open(out.join("out.pdx/pdxinfo")).unwrap();
-    fs::copy(out.join("hello_world.dylib"), out.join("out.pdx/pdex.dylib")).unwrap();
+    fs::copy(out.join("libhello_world.dylib"), out.join("out.pdx/pdex.dylib")).unwrap();
 }
 '''
 
