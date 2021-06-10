@@ -20,12 +20,15 @@ fn main() {
 
 fn build_arm() -> bindgen::Bindings {
     let pd_sdk_path = env::var("PLAYDATE_SDK").unwrap();
+    let arm_gcc = env::var("ARM_GCC").unwrap();
     bindgen::Builder::default()
         .use_core()
         .ctypes_prefix("cty")
         .clang_arg("-DTARGET_EXTENSION=1")
         .clang_arg("-DTARGET_PLAYDATE=1")
         .clang_arg(format!("-I{}/C_API", pd_sdk_path))
+        .clang_arg(format!("-I{}/include", arm_gcc))
+        .clang_arg("-fshort-enums")
         .header("wrapper.h")
         .default_enum_style(bindgen::EnumVariation::Rust {
             non_exhaustive: false,
@@ -36,8 +39,6 @@ fn build_arm() -> bindgen::Bindings {
         .bitfield_enum("SoundFormat")
         .bitfield_enum("PDButtons")
         .bitfield_enum("PDPeripherals")
-        .clang_arg("-I/usr/local/playdate/gcc-arm-none-eabi-9-2019-q4-major/arm-none-eabi/include/")
-        .clang_arg("-fshort-enums")
         .generate()
         .expect("Unable to generate bindings")
 }

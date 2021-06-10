@@ -5,18 +5,31 @@ use cc;
 fn main() {
     let arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
     let pd_sdk_path = env::var("PLAYDATE_SDK").unwrap();
+    let out_dir = "target/thumbv7em-none-eabihf/release/examples";
     if arch == "arm" || arch == "aarch64" {
-        // fs::copy(format!("{}/C_API/buildsupport/link_map.ld", pd_sdk_path),
-        //          format!("{}/link_map.ld", env::var("OUT_DIR").unwrap())).unwrap();
         cc::Build::new()
             .file(format!("{}/C_API/buildsupport/setup.c", pd_sdk_path))
             .include(format!("{}/C_API", pd_sdk_path))
             .flag("-DTARGET_PLAYDATE=1")
             .flag("-DTARGET_EXTENSION=1")
-            .out_dir("target/thumbv7em-none-eabihf/release/examples")
+            .flag("-Wall")
+            .flag("-Wno-unknown-pragmas")
+            .flag("-O2")
+            .flag("-mthumb")
+            .flag("-mcpu=cortex-m7")
+            .flag("-mfloat-abi=hard")
+            .flag("-mfpu=fpv4-sp-d16")
+            .flag("-D__FPU_USED=1")
+            .flag("-falign-functions=16")
+            .flag("-fomit-frame-pointer")
+            .flag("-gdwarf-2")
+            .flag("-fverbose-asm")
+            .flag("-ffunction-sections")
+            .flag("-fdata-sections")
+            .out_dir(out_dir.clone())
             .compile("setup");
-        // println!("cargo:rustc-link-search=native=/usr/local/playdate/gcc-arm-none-eabi-9-2019-q4-major/arm-none-eabi/lib");
-        // println!("cargo:rustc-link-search=native=/usr/local/playdate/gcc-arm-none-eabi-9-2019-q4-major/lib/gcc/arm-none-eabi/9.2.1");
         println!("cargo:rerun-if-changed=build.rs");
+        println!("cargo:rustc-link-search=native={}", out_dir);
+        println!("cargo:rustc-link-lib=static=setup");
     }
 }

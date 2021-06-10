@@ -1,38 +1,69 @@
 [config]
 default_to_workspace = false
 
-[tasks.build-simulator]
+[tasks.windows-build-simulator]
 command = "cargo"
-args = ["build", "--release", "--example", "hello_world"]
+args = ["build", "--release", "--target", "i686-pc-windows-gnu", "--example", "hello_world"]
 
-[tasks.post-build-simulator]
-script = [
-    "export RELEASE=target/x86_64-pc-windows-msvc/release/examples",
-    "mkdir -p $RELEASE/source",
-    "touch $RELEASE/source/pdxinfo",
-    "touch $RELEASE/source/pdex.bin",
-    "cp $RELEASE/libhello_world.dylib $RELEASE/source/pdex.dylib",
-    "pdc $RELEASE/source $RELEASE/out.pdx"
-]
+[tasks.mac-build-simulator]
+command = "cargo"
+args = ["build", "--release", "--target", "x86_64-apple-darwin", "--example", "hello_world"]
+
+[tasks.windows-post-build-simulator]
+script_runner = "@rust"
+script = '''
+use std::{fs, path::Path};
+fn main() {
+    let out = Path::new("target/i686-pc-windows-gnu/release/examples");
+    fs::create_dir_all(out.join("out.pdx")).unwrap();
+    fs::OpenOptions::new().create(true).write(true).open(out.join("out.pdx/pdxinfo")).unwrap();
+    fs::copy(out.join("hello_world.dll"), out.join("out.pdx/pdex.dll")).unwrap();
+}
+'''
+
+[tasks.mac-post-build-simulator]
+script_runner = "@rust"
+script = '''
+use std::{fs, path::Path};
+fn main() {
+    let out = Path::new("target/x86_64-apple-darwin/release/examples");
+    fs::create_dir_all(out.join("out.pdx")).unwrap();
+    fs::OpenOptions::new().create(true).write(true).open(out.join("out.pdx/pdxinfo")).unwrap();
+    fs::copy(out.join("hello_world.dylib"), out.join("out.pdx/pdex.dylib")).unwrap();
+}
+'''
+
+[tasks.windows-simulator]
+dependencies = ["windows-build-simulator", "windows-post-build-simulator"]
+
+[tasks.mac-simulator]
+dependencies = ["mac-build-simulator", "mac-post-build-simulator"]
 
 [tasks.simulator]
-dependencies = ["build-simulator", "post-build-simulator"]
+windows_alias = "windows-simulator"
+mac_alias = "mac-simulator"
 
 [tasks.build-device]
 command = "cargo"
-args = ["build", "--target", "thumbv7em-none-eabihf", "--release", "--example", "hello_world"]
+args = ["build", "--release", "--target", "thumbv7em-none-eabihf", "--example", "hello_world"]
 
 [tasks.post-build-device]
-script = [
-    "export C_API=$PLAYDATE_SDK/C_API",
-    "export RELEASE=target/thumbv7em-none-eabihf/release/examples",
-    "arm-none-eabi-gcc $RELEASE/setup.o $RELEASE/libhello_world.a -mthumb -mcpu=cortex-m7 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -D__FPU_USED=1 -Wl,--gc-sections,--no-warn-mismatch -T $C_API/buildsupport/link_map.ld -o $RELEASE/pdex.elf",
-    "arm-none-eabi-objcopy -O binary $RELEASE/pdex.elf $RELEASE/pdex.bin",
-    "mkdir -p $RELEASE/source",
-    "touch $RELEASE/source/pdxinfo",
-    "cp $RELEASE/pdex.bin $RELEASE/source",
-    "pdc $RELEASE/source $RELEASE/out.pdx"
-]
+script_runner = "@rust"
+script = '''
+use std::{env, fs, path::Path, process::Command};
+fn main() {
+    let out = Path::new("target/thumbv7em-none-eabihf/release/examples");
+    Command::new("arm-none-eabi-gcc")
+        .args(&[out.join("setup.o").to_str().unwrap(), out.join("libhello_world.a").to_str().unwrap(), "-mthumb", "-mcpu=cortex-m7", "-mfloat-abi=hard",
+                "-mfpu=fpv4-sp-d16", "-D__FPU_USED=1", format!("-T{}/C_API/buildsupport/link_map.ld", env::var("PLAYDATE_SDK").unwrap()).as_str(),
+                "-Wl,-Map=game.map,--cref,--gc-sections,--no-warn-mismatch", "-o", out.join("pdex.elf").to_str().unwrap()])
+        .output()
+        .unwrap();
+    fs::create_dir_all(out.join("out.pdx")).unwrap();
+    fs::OpenOptions::new().create(true).write(true).open(out.join("out.pdx/pdxinfo")).unwrap();
+    Command::new("arm-none-eabi-objcopy").args(&["-O", "binary", out.join("pdex.elf").to_str().unwrap(), out.join("out.pdx/pdex.bin").to_str().unwrap()]).output().unwrap();
+}
+'''
 
 [tasks.device]
 dependencies = ["build-device", "post-build-device"]

@@ -1,10 +1,7 @@
 [unstable]
-# build-std = ["core", "compiler_builtins", "alloc"]
-# build-std-features = ["compiler-builtins-mem"]
+build-std = ["core", "compiler_builtins", "alloc"]
+build-std-features = ["compiler-builtins-mem"]
 features = ["host_dep"]
 
-[target.thumbv7em-none-eabihf]
-rustflags = ["-C", "link-arg=-Tlink_map.ld"]
-
-[build]
-#target = "thumbv7em-none-eabihf"
+# [build]
+# target = "thumbv7em-none-eabihf"
