@@ -50,6 +50,7 @@ fn build_x86() -> bindgen::Bindings {
         .clang_arg("-DTARGET_EXTENSION=1")
         .clang_arg("-DTARGET_SIMULATOR=1")
         .clang_arg(format!("-I{}/C_API", pd_sdk_path))
+        .clang_arg("-v")
         .header("wrapper.h")
         .default_enum_style(bindgen::EnumVariation::Rust {
             non_exhaustive: false,

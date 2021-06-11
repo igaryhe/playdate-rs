@@ -7,7 +7,7 @@ args = ["build", "--release", "--target", "i686-pc-windows-msvc", "--example", "
 
 [tasks.mac-build-simulator]
 command = "cargo"
-args = ["build", "--release", "--target", "x86_64-apple-darwin", "--example", "hello_world"]
+args = ["build", "--release", "--example", "hello_world"]
 
 [tasks.windows-post-build-simulator]
 script_runner = "@rust"
@@ -15,21 +15,23 @@ script = '''
 use std::{fs, path::Path};
 fn main() {
     let out = Path::new("target/i686-pc-windows-msvc/release/examples");
-    fs::create_dir_all(out.join("out.pdx")).unwrap();
-    fs::OpenOptions::new().create(true).write(true).open(out.join("out.pdx/pdxinfo")).unwrap();
-    fs::copy(out.join("hello_world.dll"), out.join("out.pdx/pdex.dll")).unwrap();
+    fs::create_dir_all(out.join("source")).unwrap();
+    fs::OpenOptions::new().create(true).write(true).open(out.join("source/pdex.bin")).unwrap();
+    fs::copy(out.join("hello_world.dll"), out.join("source/pdex.dll")).unwrap();
+    Command::new("pdc").args(&[out.join("source").to_str().unwrap(), "out.pdx"]).output().unwrap();
 }
 '''
 
 [tasks.mac-post-build-simulator]
 script_runner = "@rust"
 script = '''
-use std::{fs, path::Path};
+use std::{fs, path::Path, process::Command};
 fn main() {
-    let out = Path::new("target/x86_64-apple-darwin/release/examples");
-    fs::create_dir_all(out.join("out.pdx")).unwrap();
-    fs::OpenOptions::new().create(true).write(true).open(out.join("out.pdx/pdxinfo")).unwrap();
-    fs::copy(out.join("libhello_world.dylib"), out.join("out.pdx/pdex.dylib")).unwrap();
+    let out = Path::new("target/release/examples");
+    fs::create_dir_all(out.join("source")).unwrap();
+    fs::OpenOptions::new().create(true).write(true).open(out.join("source/pdex.bin")).unwrap();
+    fs::copy(out.join("libhello_world.dylib"), out.join("source/pdex.dylib")).unwrap();
+    Command::new("pdc").args(&[out.join("source").to_str().unwrap(), "out.pdx"]).output().unwrap();
 }
 '''
 
@@ -53,15 +55,16 @@ script = '''
 use std::{env, fs, path::Path, process::Command};
 fn main() {
     let out = Path::new("target/thumbv7em-none-eabihf/release/examples");
-    Command::new("arm-none-eabi-gcc")
+    let link = Command::new("arm-none-eabi-gcc")
         .args(&[out.join("setup.o").to_str().unwrap(), out.join("libhello_world.a").to_str().unwrap(), "-mthumb", "-mcpu=cortex-m7", "-mfloat-abi=hard",
                 "-mfpu=fpv4-sp-d16", "-D__FPU_USED=1", format!("-T{}/C_API/buildsupport/link_map.ld", env::var("PLAYDATE_SDK").unwrap()).as_str(),
                 "-Wl,-Map=game.map,--cref,--gc-sections,--no-warn-mismatch", "-o", out.join("pdex.elf").to_str().unwrap()])
         .output()
         .unwrap();
-    fs::create_dir_all(out.join("out.pdx")).unwrap();
-    fs::OpenOptions::new().create(true).write(true).open(out.join("out.pdx/pdxinfo")).unwrap();
-    Command::new("arm-none-eabi-objcopy").args(&["-O", "binary", out.join("pdex.elf").to_str().unwrap(), out.join("out.pdx/pdex.bin").to_str().unwrap()]).output().unwrap();
+    println!("{}", String::from_utf8(link.stderr).unwrap());
+    fs::create_dir_all(out.join("source")).unwrap();
+    Command::new("arm-none-eabi-objcopy").args(&["-O", "binary", out.join("pdex.elf").to_str().unwrap(), out.join("source/pdex.bin").to_str().unwrap()]).output().unwrap();
+    Command::new("pdc").args(&[out.join("source").to_str().unwrap(), "out.pdx"]).output().unwrap();
 }
 '''
 

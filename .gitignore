@@ -2,4 +2,4 @@
 Cargo.lock
 .DS_Store
 game.map
-source
+out.pdx
