@@ -12,7 +12,7 @@ args = ["build", "--release", "--example", "hello_world"]
 [tasks.windows-post-build-simulator]
 script_runner = "@rust"
 script = '''
-use std::{fs, path::Path};
+use std::{fs, path::Path, process::Command};
 fn main() {
     let out = Path::new("target/i686-pc-windows-msvc/release/examples");
     fs::create_dir_all(out.join("source")).unwrap();
