@@ -96,7 +96,7 @@ impl File {
         unsafe {
             let result = (*fs.fs).write
                 .unwrap()(self.file,
-                          buf.as_ptr() as *mut cty::c_void,
+                          buf.as_ptr() as *const cty::c_void,
                           buf.len() as u32);
             ensure!(result >= 0, "Error {} from write", result);
             Ok(result)

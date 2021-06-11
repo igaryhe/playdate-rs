@@ -193,12 +193,55 @@ fn panic(panic_info: &PanicInfo) -> ! {
     abort_with_addr(0xdeadbeef)
 }
 
-#[cfg(all(windows, target_env = "gnu"))]
-pub mod eh_frame_registry
-{
-    #[no_mangle]
-    pub extern "C" fn rust_eh_register_frames() {}
+// #[cfg(all(windows, target_env = "gnu"))]
+// pub mod eh_frame_registry
+// {
+//     #[no_mangle]
+//     pub extern "C" fn rust_eh_register_frames() {}
 
-    #[no_mangle]
-    pub extern "C" fn rust_eh_unregister_frames() {}
+//     #[no_mangle]
+//     pub extern "C" fn rust_eh_unregister_frames() {}
+// }
+
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+#[no_mangle]
+pub unsafe extern "C" fn memcpy(dest: *mut u8, src: *const u8, n: usize) -> *mut u8 {
+    let mut i = 0;
+    while i < n {
+        *dest.offset(i as isize) = *src.offset(i as isize);
+        i += 1;
+    }
+    dest
 }
+
+
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+pub unsafe fn memset_internal(s: *mut u8, c: sys::cty::c_int, n: usize) -> *mut u8 {
+    let mut i = 0;
+    while i < n {
+        *s.offset(i as isize) = c as u8;
+        i += 1;
+    }
+    s
+}
+
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+#[no_mangle]
+pub unsafe extern "C" fn memset(s: *mut u8, c: sys::cty::c_int, n: usize) -> *mut u8 {
+    memset_internal(s, c, n)
+}
+
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+#[no_mangle]
+pub unsafe extern "C" fn __bzero(s: *mut u8, n: usize) {
+    memset_internal(s, 0, n);
+}
+
+#[cfg(target_arch = "x86")]
+#[used]
+#[no_mangle]
+static _fltused: i32 = 0;
+
+#[cfg(target_arch = "x86")]
+#[no_mangle]
+extern "system" fn _DllMainCRTStartup(_: *const u8, _: u32, _: *const u8) -> u32 { 1 }

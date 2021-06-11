@@ -3,7 +3,7 @@ default_to_workspace = false
 
 [tasks.windows-build-simulator]
 command = "cargo"
-args = ["build", "--release", "--target", "i686-pc-windows-gnu", "--example", "hello_world"]
+args = ["build", "--release", "--target", "i686-pc-windows-msvc", "--example", "hello_world"]
 
 [tasks.mac-build-simulator]
 command = "cargo"
@@ -14,7 +14,7 @@ script_runner = "@rust"
 script = '''
 use std::{fs, path::Path};
 fn main() {
-    let out = Path::new("target/i686-pc-windows-gnu/release/examples");
+    let out = Path::new("target/i686-pc-windows-msvc/release/examples");
     fs::create_dir_all(out.join("out.pdx")).unwrap();
     fs::OpenOptions::new().create(true).write(true).open(out.join("out.pdx/pdxinfo")).unwrap();
     fs::copy(out.join("hello_world.dll"), out.join("out.pdx/pdex.dll")).unwrap();
