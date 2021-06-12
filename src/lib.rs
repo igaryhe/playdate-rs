@@ -111,7 +111,7 @@ macro_rules! start_game {
         }
 
         #[no_mangle]
-        extern "C" fn eventHandler(playdate: *mut PlaydateAPI,
+        unsafe extern "C" fn eventHandler(playdate: *mut PlaydateAPI,
             event: PDSystemEvent, _arg: u32,) -> cty::c_int {
             if event == PDSystemEvent::kEventInit {
                 Playdate::new(playdate);
@@ -276,3 +276,21 @@ static _fltused: i32 = 0;
 #[cfg(target_arch = "x86")]
 #[no_mangle]
 extern "system" fn _DllMainCRTStartup(_: *const u8, _: u32, _: *const u8) -> u32 { 1 }
+
+extern "C" {
+    fn eventHandler(playdate: *mut PlaydateAPI, event: sys::PDSystemEvent, _arg: u32) -> cty::c_int;
+    fn __bss_start__();
+    fn __bss_end__();
+}
+#[cfg(any(target_arch = "arm", target_arch = "aarch64"))]
+#[no_mangle]
+#[link_section = ".capi_handler"]
+pub static mut PD_eventHandler: unsafe extern "C" fn(*mut PlaydateAPI, sys::PDSystemEvent, u32) -> i32 = eventHandler;
+#[cfg(any(target_arch = "arm", target_arch = "aarch64"))]
+#[no_mangle]
+#[link_section = ".bss_start"]
+pub static mut _bss_start: unsafe extern "C" fn() = __bss_start__;
+#[cfg(any(target_arch = "arm", target_arch = "aarch64"))]
+#[no_mangle]
+#[link_section = ".bss_end"]
+pub static mut _bss_end: unsafe extern "C" fn() = __bss_end__;
