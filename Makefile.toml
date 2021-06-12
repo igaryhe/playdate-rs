@@ -52,18 +52,11 @@ args = ["build", "--release", "--target", "thumbv7em-none-eabihf", "--example", 
 [tasks.post-build-device]
 script_runner = "@rust"
 script = '''
-use std::{env, fs, path::Path, process::Command};
+use std::{fs, path::Path, process::Command};
 fn main() {
     let out = Path::new("target/thumbv7em-none-eabihf/release/examples");
-    let link = Command::new("arm-none-eabi-gcc")
-        .args(&[out.join("setup.o").to_str().unwrap(), out.join("libhello_world.a").to_str().unwrap(), "-mthumb", "-mcpu=cortex-m7", "-mfloat-abi=hard",
-                "-mfpu=fpv4-sp-d16", "-D__FPU_USED=1", format!("-T{}/C_API/buildsupport/link_map.ld", env::var("PLAYDATE_SDK").unwrap()).as_str(),
-                "-Wl,-Map=game.map,--cref,--gc-sections,--no-warn-mismatch", "-o", out.join("pdex.elf").to_str().unwrap()])
-        .output()
-        .unwrap();
-    println!("{}", String::from_utf8(link.stderr).unwrap());
     fs::create_dir_all(out.join("source")).unwrap();
-    Command::new("arm-none-eabi-objcopy").args(&["-O", "binary", out.join("pdex.elf").to_str().unwrap(), out.join("source/pdex.bin").to_str().unwrap()]).output().unwrap();
+    Command::new("arm-none-eabi-objcopy").args(&["-O", "binary", out.join("hello_world").to_str().unwrap(), out.join("source/pdex.bin").to_str().unwrap()]).output().unwrap();
     Command::new("pdc").args(&[out.join("source").to_str().unwrap(), "out.pdx"]).output().unwrap();
 }
 '''

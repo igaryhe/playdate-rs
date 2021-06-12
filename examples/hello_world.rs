@@ -1,4 +1,5 @@
 #![no_std]
+#![no_main]
 
 use playdate::*;
 use playdate::graphics;

@@ -1,0 +1,3 @@
+[target.thumbv7em-none-eabihf]
+rustflags = ["-C", "link-args=-mthumb -mcpu=cortex-m7 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -D__FPU_USED=1 -Tplaydate-sys/src/link_map.ld"]
+linker = "arm-none-eabi-gcc"
