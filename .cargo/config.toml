@@ -6,7 +6,3 @@ rustflags = ["-C", "link-arg=-mthumb",
              "-C", "link-arg=-D__FPU_USED=1",
              "-C", "link-arg=-Tplaydate-sys/src/link_map.ld"]
 linker = "arm-none-eabi-gcc"
-
-[target.i686-pc-windows-msvc]
-linker = "ld-link.exe"
-rustflags = ["-C", "link-args=-fuse-ld=lld"]
