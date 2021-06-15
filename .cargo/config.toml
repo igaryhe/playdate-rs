@@ -1,3 +1,12 @@
 [target.thumbv7em-none-eabihf]
-rustflags = ["-C", "link-args=-mthumb -mcpu=cortex-m7 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -D__FPU_USED=1 -Tplaydate-sys/src/link_map.ld"]
+rustflags = ["-C", "link-arg=-mthumb",
+             "-C", "link-arg=-mcpu=cortex-m7",
+             "-C", "link-arg=-mfloat-abi=hard",
+             "-C", "link-arg=-mfpu=fpv4-sp-d16",
+             "-C", "link-arg=-D__FPU_USED=1",
+             "-C", "link-arg=-Tplaydate-sys/src/link_map.ld"]
 linker = "arm-none-eabi-gcc"
+
+[target.i686-pc-windows-msvc]
+linker = "ld-link.exe"
+rustflags = ["-C", "link-args=-fuse-ld=lld"]
