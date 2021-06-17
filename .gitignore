@@ -3,3 +3,4 @@ Cargo.lock
 .DS_Store
 game.map
 out.pdx
+build
