@@ -4,7 +4,7 @@ set out_device=%~dp0target\thumbv7em-none-eabihf\release\examples
 if %1==simulator (
     mkdir %out%\source > nul
     copy /y nul %out%\source\pdex.bin
-    copy %out%\%2.dll %out%\source\
+    copy %out%\%2.dll %out%\source\pdex.dll
     start pdc %out%\source %~dp0out.pdx
 ) else if %1==device (
     mkdir %out_device%\source > nul

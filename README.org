@@ -1,4 +1,5 @@
 * Unofficial Rust binding for Playdate C API
+*THIS HASN'T BEEN TESTED ON APPLE SILICON MAC*
 ** Setup
 - Install Playdate SDK and set environment variable ~PLAYDATE_SDK~ as its root directory
 - Install arm-none-eabi-gcc and set environment variable ~ARM_GCC~ as its root directory

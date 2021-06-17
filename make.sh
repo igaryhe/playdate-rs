@@ -4,7 +4,7 @@ then
     out=target/release/examples
     mkdir $out/source
     touch $out/source/pdex.bin
-    cp $out/lib$2.dylib $out/source/
+    cp $out/lib$2.dylib $out/source/pdex.dylib
     pdc $out/source out.pdx
 elif [$1 == 'device']
     out=target/thumbv7em-none-eabihf/release/examples
