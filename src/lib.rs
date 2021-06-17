@@ -2,8 +2,8 @@
 #![feature(alloc_error_handler, core_intrinsics)]
 
 pub extern crate playdate_sys as sys;
-use sys::PlaydateAPI;
 use anyhow::Result;
+use sys::PlaydateAPI;
 pub mod display;
 pub mod file;
 pub mod graphics;
@@ -31,12 +31,24 @@ impl Playdate {
     pub fn playdate() -> Self {
         unsafe { PLAYDATE.clone() }
     }
-    pub fn system(&self) -> system::System { self.system.unwrap().clone() }
-    pub fn filesystem(&self) -> file::Filesystem { self.filesystem.unwrap().clone() }
-    pub fn graphics(&self) -> graphics::Graphics { self.graphics.unwrap().clone() }
-    pub fn sprite(&self) -> sprite::PDSprite { self.sprite.unwrap().clone() }
-    pub fn display(&self) -> display::Display { self.display.unwrap().clone() }
-    pub fn sound(&self) -> sound::Sound { self.sound.unwrap().clone() }
+    pub fn system(&self) -> system::System {
+        self.system.unwrap().clone()
+    }
+    pub fn filesystem(&self) -> file::Filesystem {
+        self.filesystem.unwrap().clone()
+    }
+    pub fn graphics(&self) -> graphics::Graphics {
+        self.graphics.unwrap().clone()
+    }
+    pub fn sprite(&self) -> sprite::PDSprite {
+        self.sprite.unwrap().clone()
+    }
+    pub fn display(&self) -> display::Display {
+        self.display.unwrap().clone()
+    }
+    pub fn sound(&self) -> sound::Sound {
+        self.sound.unwrap().clone()
+    }
 
     pub fn get_system() -> system::System {
         unsafe { PLAYDATE.system.unwrap().clone() }
@@ -53,7 +65,7 @@ impl Playdate {
     pub fn get_filesystem() -> file::Filesystem {
         unsafe { PLAYDATE.filesystem.unwrap().clone() }
     }
-    
+
     pub fn get_sound() -> sound::Sound {
         unsafe { PLAYDATE.sound.unwrap().clone() }
     }
@@ -94,14 +106,14 @@ pub trait Game {
 
 #[macro_export]
 macro_rules! start_game {
-    ($state:tt) => (
+    ($state:tt) => {
         extern crate alloc;
         use alloc::boxed::Box;
         use sys::{cty, PDSystemEvent, PlaydateAPI};
         static mut STATE: Option<$state> = None;
-        
+
         extern "C" fn update(_ud: *mut cty::c_void) -> cty::c_int {
-            unsafe{
+            unsafe {
                 STATE = STATE.map(|mut s| {
                     s.update(&mut Playdate::playdate()).unwrap();
                     s
@@ -111,8 +123,11 @@ macro_rules! start_game {
         }
 
         #[no_mangle]
-        unsafe extern "C" fn eventHandler(playdate: *mut PlaydateAPI,
-            event: PDSystemEvent, _arg: u32,) -> cty::c_int {
+        unsafe extern "C" fn eventHandler(
+            playdate: *mut PlaydateAPI,
+            event: PDSystemEvent,
+            _arg: u32,
+        ) -> cty::c_int {
             if event == PDSystemEvent::kEventInit {
                 Playdate::new(playdate);
                 Playdate::get_display().set_refresh_rate(20.0);
@@ -123,7 +138,7 @@ macro_rules! start_game {
             }
             0
         }
-    )
+    };
 }
 
 pub struct PlaydateAllocator;
@@ -179,12 +194,12 @@ fn panic(panic_info: &PanicInfo) -> ! {
             location.file(),
             location.line()
         )
-            .expect("write");
+        .expect("write");
         Playdate::get_system().error(output.as_str());
     } else {
         Playdate::get_system().error("panic\0");
     }
-    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+    #[cfg(target_arch = "x86_64")]
     {
         unsafe {
             core::intrinsics::breakpoint();
@@ -193,7 +208,7 @@ fn panic(panic_info: &PanicInfo) -> ! {
     abort_with_addr(0xdeadbeef)
 }
 
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+#[cfg(target_arch = "x86_64")]
 #[no_mangle]
 pub unsafe extern "C" fn memcpy(dest: *mut u8, src: *const u8, n: usize) -> *mut u8 {
     let mut i = 0;
@@ -204,49 +219,49 @@ pub unsafe extern "C" fn memcpy(dest: *mut u8, src: *const u8, n: usize) -> *mut
     dest
 }
 
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-#[no_mangle]
-pub unsafe extern "C" fn memmove(dest: *mut u8, src: *const u8, n: usize) -> *mut u8 {
-    if src < dest as *const u8 {
-        // copy from end
-        let mut i = n;
-        while i != 0 {
-            i -= 1;
-            *dest.offset(i as isize) = *src.offset(i as isize);
-        }
-    } else {
-        // copy from beginning
-        let mut i = 0;
-        while i < n {
-            *dest.offset(i as isize) = *src.offset(i as isize);
-            i += 1;
-        }
-    }
-    dest
-}
+// #[cfg(target_arch = "x86_64")]
+// #[no_mangle]
+// pub unsafe extern "C" fn memmove(dest: *mut u8, src: *const u8, n: usize) -> *mut u8 {
+//     if src < dest as *const u8 {
+//         // copy from end
+//         let mut i = n;
+//         while i != 0 {
+//             i -= 1;
+//             *dest.offset(i as isize) = *src.offset(i as isize);
+//         }
+//     } else {
+//         // copy from beginning
+//         let mut i = 0;
+//         while i < n {
+//             *dest.offset(i as isize) = *src.offset(i as isize);
+//             i += 1;
+//         }
+//     }
+//     dest
+// }
 
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-#[no_mangle]
-pub unsafe extern "C" fn memcmp(s1: *const u8, s2: *const u8, n: usize) -> i32 {
-    let mut i = 0;
-    while i < n {
-        let a = *s1.offset(i as isize);
-        let b = *s2.offset(i as isize);
-        if a != b {
-            return a as i32 - b as i32;
-        }
-        i += 1;
-    }
-    0
-}
+// #[cfg(target_arch = "x86_64")]
+// #[no_mangle]
+// pub unsafe extern "C" fn memcmp(s1: *const u8, s2: *const u8, n: usize) -> i32 {
+//     let mut i = 0;
+//     while i < n {
+//         let a = *s1.offset(i as isize);
+//         let b = *s2.offset(i as isize);
+//         if a != b {
+//             return a as i32 - b as i32;
+//         }
+//         i += 1;
+//     }
+//     0
+// }
 
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-#[no_mangle]
-pub unsafe extern "C" fn bcmp(s1: *const u8, s2: *const u8, n: usize) -> i32 {
-    memcmp(s1, s2, n)
-}
+// #[cfg(target_arch = "x86_64")]
+// #[no_mangle]
+// pub unsafe extern "C" fn bcmp(s1: *const u8, s2: *const u8, n: usize) -> i32 {
+//     memcmp(s1, s2, n)
+// }
 
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+#[cfg(target_arch = "x86_64")]
 pub unsafe fn memset_internal(s: *mut u8, c: sys::cty::c_int, n: usize) -> *mut u8 {
     let mut i = 0;
     while i < n {
@@ -256,36 +271,43 @@ pub unsafe fn memset_internal(s: *mut u8, c: sys::cty::c_int, n: usize) -> *mut 
     s
 }
 
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+#[cfg(target_arch = "x86_64")]
 #[no_mangle]
 pub unsafe extern "C" fn memset(s: *mut u8, c: sys::cty::c_int, n: usize) -> *mut u8 {
     memset_internal(s, c, n)
 }
 
-#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+#[cfg(target_os = "macos")]
 #[no_mangle]
 pub unsafe extern "C" fn __bzero(s: *mut u8, n: usize) {
     memset_internal(s, 0, n);
 }
 
-#[cfg(target_arch = "x86")]
+#[cfg(target_os = "windows")]
 #[used]
 #[no_mangle]
 static _fltused: i32 = 0;
 
-#[cfg(target_arch = "x86")]
+#[cfg(target_os = "windows")]
 #[no_mangle]
-extern "system" fn _DllMainCRTStartup(_: *const u8, _: u32, _: *const u8) -> u32 { 1 }
+extern "system" fn _DllMainCRTStartup(_: *const u8, _: u32, _: *const u8) -> u32 {
+    1
+}
 
 extern "C" {
-    fn eventHandler(playdate: *mut PlaydateAPI, event: sys::PDSystemEvent, _arg: u32) -> cty::c_int;
+    fn eventHandler(playdate: *mut PlaydateAPI, event: sys::PDSystemEvent, _arg: u32)
+        -> cty::c_int;
     fn __bss_start__();
     fn __bss_end__();
 }
 #[cfg(any(target_arch = "arm", target_arch = "aarch64"))]
 #[no_mangle]
 #[link_section = ".capi_handler"]
-pub static mut PD_eventHandler: unsafe extern "C" fn(*mut PlaydateAPI, sys::PDSystemEvent, u32) -> i32 = eventHandler;
+pub static mut PD_eventHandler: unsafe extern "C" fn(
+    *mut PlaydateAPI,
+    sys::PDSystemEvent,
+    u32,
+) -> i32 = eventHandler;
 #[cfg(any(target_arch = "arm", target_arch = "aarch64"))]
 #[no_mangle]
 #[link_section = ".bss_start"]
@@ -294,3 +316,16 @@ pub static mut _bss_start: unsafe extern "C" fn() = __bss_start__;
 #[no_mangle]
 #[link_section = ".bss_end"]
 pub static mut _bss_end: unsafe extern "C" fn() = __bss_end__;
+
+#[macro_export]
+macro_rules! pd_call {
+    ($caller:expr, $func:ident) => { unsafe { (*$caller).$func.unwrap()() } };
+    ($caller:expr, $func:ident, $($param:expr),*) => { unsafe { (*$caller).$func.unwrap()($($param,)*) } };
+    ($caller:expr, $func:ident, $($param:expr),* => $val:expr) => {
+        {
+            let result = unsafe {(*$caller).$func.unwrap()($($param,)*)};
+            ensure!(result >= 0, "Error {} from $func", result);
+            Ok($val)
+        }
+    };
+}

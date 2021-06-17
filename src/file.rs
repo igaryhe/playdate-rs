@@ -7,140 +7,84 @@ use cstr_core::{CString, CStr};
 
 pub use sys::FileOptions;
 pub use sys::FileStat;
+use crate::pd_call;
 
-#[derive(Copy, Clone)]
-pub struct Filesystem {
-    fs: *const sys::playdate_file,
+macro_rules! fs_call {
+    ($func:ident, $($param:expr),*) => {
+        {
+            let fs = Playdate::get_filesystem();
+            let result = unsafe {(*fs.0).$func.unwrap()($($param,)*)};
+            ensure!(result >= 0, "Error {} from $func", result);
+            Ok(result)
+        }
+    };
 }
 
+#[derive(Copy, Clone)]
+pub struct Filesystem(*const sys::playdate_file);
+
 impl Filesystem {
-    pub fn new(fs: *const sys::playdate_file) -> Self {
-        Self { fs }
-    }
+    pub fn new(fs: *const sys::playdate_file) -> Self { Self(fs) }
 
     pub fn open(&self, path: &str, mode: FileOptions) -> Result<File> {
         let c_path = CString::new(path).map_err(Error::msg)?;
-        unsafe {
-            let file = (*self.fs).open.unwrap()(c_path.as_ptr(), mode);
-            ensure!(!file.is_null(), "Error open {}", path);
-            Ok(File { file })
-        }
+        let file = pd_call!(self.0, open, c_path.as_ptr(), mode);
+        ensure!(!file.is_null(), "Error open {}", path);
+        Ok(File(file))
     }
 
     pub fn stat(&self, path: &str) -> Result<FileStat> {
-        let c_path = CString::new(path).map_err(Error::msg)?;
         let mut file_stat = FileStat::default();
-        unsafe {
-            let result = (*self.fs).stat.unwrap()(c_path.as_ptr(), &mut file_stat);
-            ensure!(result == 0, "Error {} from stat", result);
-            Ok(file_stat)
-        }
+        pd_call!(self.0, stat, str_to_ptr(path), &mut file_stat => file_stat)
     }
 
     pub fn mkdir(&self, path: &str) -> Result<()> {
-        let c_path = CString::new(path).map_err(Error::msg)?;
-        unsafe {
-            let result = (*self.fs).mkdir.unwrap()(c_path.as_ptr());
-            ensure!(result == 0, "Error {} from mkdir", result);
-        }
-        Ok(())
+        pd_call!(self.0, mkdir, str_to_ptr(path) => ())
     }
 
     pub fn unlink(&self, name: &str, recursive: bool) -> Result<()> {
-        let c_name = CString::new(name).map_err(Error::msg)?;
-        unsafe {
-            let result = (*self.fs).unlink.unwrap()(c_name.as_ptr(), recursive as i32);
-            ensure!(result == 0, "Error {} from unlink", result);
-        }
-        Ok(())
+        pd_call!(self.0, unlink, str_to_ptr(name), recursive as i32 => ())
     }
     
     pub fn rename(&self, from: &str, to: &str) -> Result<()> {
-        let c_from = CString::new(from).map_err(Error::msg)?;
-        let c_to = CString::new(to).map_err(Error::msg)?;
-        unsafe {
-            let result = (*self.fs).rename.unwrap()(c_from.as_ptr(), c_to.as_ptr());
-            ensure!(result == 0, "Error {} from rename", result);
-        }
-        Ok(())
+        pd_call!(self.0, rename, str_to_ptr(from), str_to_ptr(to) => ())
     }
 
     pub fn get_err(&self) -> Result<&str> {
         unsafe {
-            let ptr = (*self.fs).geterr.unwrap()();
+            let ptr = (*self.0).geterr.unwrap()();
             ensure!(!ptr.is_null(), "no previous error");
             Ok(CStr::from_ptr(ptr).to_str().map_err(Error::msg)?)
         }
     }
 }
 
-pub struct File {
-    file: *mut sys::SDFile,
-}
+pub struct File(*mut sys::SDFile);
 
 impl File {
     pub fn read(&mut self, buf: &mut [u8]) -> Result<i32> {
-        let fs = Playdate::get_filesystem();
-        unsafe {
-            let result = (*fs.fs).read
-                .unwrap()(self.file,
-                        buf.as_mut_ptr() as *mut cty::c_void,
-                        buf.len() as u32);
-            ensure!(result >= 0, "Error {} from read", result);
-            Ok(result)
-        }
+        fs_call!(read, self.0, buf.as_mut_ptr() as *mut cty::c_void, buf.len() as u32)
     }
 
     pub fn write(&mut self, buf: &[u8]) -> Result<i32> {
-        let fs = Playdate::get_filesystem();
-        unsafe {
-            let result = (*fs.fs).write
-                .unwrap()(self.file,
-                          buf.as_ptr() as *const cty::c_void,
-                          buf.len() as u32);
-            ensure!(result >= 0, "Error {} from write", result);
-            Ok(result)
-        }
+        fs_call!(write, self.0, buf.as_ptr() as *const cty::c_void, buf.len() as u32)
     }
 
     pub fn flush(&mut self) -> Result<i32> {
-        let fs = Playdate::get_filesystem();
-        unsafe {
-            let result = (*fs.fs).flush
-                .unwrap()(self.file);
-            ensure!(result >= 0, "Error {} from flush", result);
-            Ok(result)
-        }
+        fs_call!(flush, self.0)
     }
 
     pub fn tell(&mut self) -> Result<i32> {
-        let fs = Playdate::get_filesystem();
-        unsafe {
-            let result = (*fs.fs).tell
-                .unwrap()(self.file);
-            ensure!(result >= 0, "Error {} from tell", result);
-            Ok(result)
-        }
+        fs_call!(tell, self.0)
     }
 
-    pub fn seek(&mut self, pos: i32, whence: Whence) -> Result<i32> {
-        let fs = Playdate::get_filesystem();
-        unsafe {
-            let result = (*fs.fs).seek
-                .unwrap()(self.file, pos, whence as i32);
-            ensure!(result >= 0, "Error {} from seek", result);
-            Ok(result)
-        }
+    pub fn seek(&mut self, pos: i32, whence: Whence) -> Result<()> {
+        pd_call!(Playdate::get_filesystem().0, seek, self.0, pos, whence as i32 => ())
     }
 }
 
 impl Drop for File {
-    fn drop(&mut self) {
-        let fs = Playdate::get_filesystem();
-        unsafe {
-            (*fs.fs).close.unwrap()(self.file);   
-        }
-    }
+    fn drop(&mut self) { pd_call!(Playdate::get_filesystem().0, close, self.0); }
 }
 
 #[repr(i32)]
@@ -149,4 +93,8 @@ pub enum Whence {
     Set = sys::SEEK_SET as i32,
     Cur = sys::SEEK_CUR as i32,
     End = sys::SEEK_END as i32,
+}
+
+fn str_to_ptr(string: &str) -> *const i8 {
+    CString::new(string).map_err(Error::msg).unwrap().as_ptr()
 }
