@@ -21,10 +21,7 @@ panic = "abort"
 opt-level = 'z'
 lto = true
 
-[build-dependencies]
-cc = "1.0.0"
-
 [[example]]
 name = "hello_world"
 path = "examples/hello_world.rs"
-crate-type = ["staticlib", "cdylib"]
+crate-type = ["cdylib"]
