@@ -1,5 +1,5 @@
 @echo off
-set out=%~dp0target\release\examples
+set out=%~dp0target\x86_64-pc-windows-msvc\release\examples
 set out_device=%~dp0target\thumbv7em-none-eabihf\release\examples
 if %1==simulator (
     mkdir %out%\source 2> nul

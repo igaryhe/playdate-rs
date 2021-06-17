@@ -6,3 +6,7 @@ rustflags = ["-C", "link-arg=-mthumb",
              "-C", "link-arg=-D__FPU_USED=1",
              "-C", "link-arg=-Tplaydate-sys/src/link_map.ld"]
 linker = "arm-none-eabi-gcc"
+
+[unstable]
+build-std-features = ["compiler-builtins-mem"]
+build-std = ["core", "alloc"]

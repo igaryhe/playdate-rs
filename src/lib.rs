@@ -208,16 +208,16 @@ fn panic(panic_info: &PanicInfo) -> ! {
     abort_with_addr(0xdeadbeef)
 }
 
-#[cfg(target_arch = "x86_64")]
-#[no_mangle]
-pub unsafe extern "C" fn memcpy(dest: *mut u8, src: *const u8, n: usize) -> *mut u8 {
-    let mut i = 0;
-    while i < n {
-        *dest.offset(i as isize) = *src.offset(i as isize);
-        i += 1;
-    }
-    dest
-}
+// #[cfg(target_arch = "x86_64")]
+// #[no_mangle]
+// pub unsafe extern "C" fn memcpy(dest: *mut u8, src: *const u8, n: usize) -> *mut u8 {
+//     let mut i = 0;
+//     while i < n {
+//         *dest.offset(i as isize) = *src.offset(i as isize);
+//         i += 1;
+//     }
+//     dest
+// }
 
 #[cfg(target_arch = "x86_64")]
 pub unsafe fn memset_internal(s: *mut u8, c: sys::cty::c_int, n: usize) -> *mut u8 {
@@ -229,53 +229,53 @@ pub unsafe fn memset_internal(s: *mut u8, c: sys::cty::c_int, n: usize) -> *mut 
     s
 }
 
-#[cfg(target_arch = "x86_64")]
-#[no_mangle]
-pub unsafe extern "C" fn memset(s: *mut u8, c: sys::cty::c_int, n: usize) -> *mut u8 {
-    memset_internal(s, c, n)
-}
+// #[cfg(target_arch = "x86_64")]
+// #[no_mangle]
+// pub unsafe extern "C" fn memset(s: *mut u8, c: sys::cty::c_int, n: usize) -> *mut u8 {
+//     memset_internal(s, c, n)
+// }
 
-#[cfg(target_os = "macos")]
-#[no_mangle]
-pub unsafe extern "C" fn memmove(dest: *mut u8, src: *const u8, n: usize) -> *mut u8 {
-    if src < dest as *const u8 {
-        // copy from end
-        let mut i = n;
-        while i != 0 {
-            i -= 1;
-            *dest.offset(i as isize) = *src.offset(i as isize);
-        }
-    } else {
-        // copy from beginning
-        let mut i = 0;
-        while i < n {
-            *dest.offset(i as isize) = *src.offset(i as isize);
-            i += 1;
-        }
-    }
-    dest
-}
+// #[cfg(target_os = "macos")]
+// #[no_mangle]
+// pub unsafe extern "C" fn memmove(dest: *mut u8, src: *const u8, n: usize) -> *mut u8 {
+//     if src < dest as *const u8 {
+//         // copy from end
+//         let mut i = n;
+//         while i != 0 {
+//             i -= 1;
+//             *dest.offset(i as isize) = *src.offset(i as isize);
+//         }
+//     } else {
+//         // copy from beginning
+//         let mut i = 0;
+//         while i < n {
+//             *dest.offset(i as isize) = *src.offset(i as isize);
+//             i += 1;
+//         }
+//     }
+//     dest
+// }
 
-#[cfg(target_os = "macos")]
-#[no_mangle]
-pub unsafe extern "C" fn memcmp(s1: *const u8, s2: *const u8, n: usize) -> i32 {
-    let mut i = 0;
-    while i < n {
-        let a = *s1.offset(i as isize);
-        let b = *s2.offset(i as isize);
-        if a != b {
-            return a as i32 - b as i32;
-        }
-        i += 1;
-    }
-    0
-}
+// #[cfg(target_os = "macos")]
+// #[no_mangle]
+// pub unsafe extern "C" fn memcmp(s1: *const u8, s2: *const u8, n: usize) -> i32 {
+//     let mut i = 0;
+//     while i < n {
+//         let a = *s1.offset(i as isize);
+//         let b = *s2.offset(i as isize);
+//         if a != b {
+//             return a as i32 - b as i32;
+//         }
+//         i += 1;
+//     }
+//     0
+// }
 
-#[cfg(target_os = "macos")]
-#[no_mangle]
-pub unsafe extern "C" fn bcmp(s1: *const u8, s2: *const u8, n: usize) -> i32 {
-    memcmp(s1, s2, n)
-}
+// #[cfg(target_os = "macos")]
+// #[no_mangle]
+// pub unsafe extern "C" fn bcmp(s1: *const u8, s2: *const u8, n: usize) -> i32 {
+//     memcmp(s1, s2, n)
+// }
 
 #[cfg(target_os = "macos")]
 #[no_mangle]

@@ -1,6 +1,6 @@
 #!/bin/bash
 if [[ "$1" == "simulator" ]];then
-    out=target/release/examples
+    out=target/x86_64-apple-darwin/release/examples
     mkdir -p $out/source
     touch $out/source/pdex.bin
     cp $out/lib$2.dylib $out/source/pdex.dylib
