@@ -95,6 +95,6 @@ pub enum Whence {
     End = sys::SEEK_END as i32,
 }
 
-fn str_to_ptr(string: &str) -> *const i8 {
+fn str_to_ptr(string: &str) -> *const cty::c_char {
     CString::new(string).map_err(Error::msg).unwrap().as_ptr()
 }
