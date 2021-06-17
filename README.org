@@ -1,6 +1,12 @@
 * Unofficial Rust binding for Playdate C API
 ** Setup
-- Install cargo make
-- cargo make simulator/device
-** Caution
-Currently only tested on x86_64-apple-darwin
+- Playdate SDK and set environment variable ~PLAYDATE_SDK~ as the SDK root directory
+- arm-none-eabi-gcc and set environment variable ~ARM_GCC~ as the toolchain root directory
+- Make sure ~$PLAYDATE_SDK/bin~ & ~$ARM_GCC/bin~ are included in ~$PATH~
+** Build Example
+*** Simulator
+- On Windows: ~cargo build --release --example hello_world~ && ~.\make.bat simulator hello_world~
+- On macOS: ~cargo build --release --example hello_world~ && ~./make.sh simulator hello_world~ (make sure you could run the script)
+*** Device
+- On Windows: ~cargo build --release --target thumbv7em-none-eabihf --example hello_world~ && ~.\make.bat device hello_world~
+- On macOS: ~cargo build --release --target thumbv7em-none-eabihf --example hello_world~ && ~./make.sh device hello_world~
