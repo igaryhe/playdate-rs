@@ -208,33 +208,16 @@ fn panic(panic_info: &PanicInfo) -> ! {
     abort_with_addr(0xdeadbeef)
 }
 
-#[cfg(target_os = "macos")]
-pub unsafe fn memset_internal(s: *mut u8, c: sys::cty::c_int, n: usize) -> *mut u8 {
-    let mut i = 0;
-    while i < n {
-        *s.offset(i as isize) = c as u8;
-        i += 1;
-    }
-    s
-}
-
-#[cfg(target_os = "macos")]
-#[no_mangle]
-pub unsafe extern "C" fn __bzero(s: *mut u8, n: usize) {
-    memset_internal(s, 0, n);
-}
-
 // windows specific config
 #[cfg(target_os = "windows")]
 #[used]
 #[no_mangle]
 static _fltused: i32 = 0;
 
-#[cfg(target_os = "windows")]
+// macos specific config
+#[cfg(target_os = "macos")]
 #[no_mangle]
-extern "system" fn _DllMainCRTStartup(_: *const u8, _: u32, _: *const u8) -> u32 {
-    1
-}
+pub unsafe extern "C" fn bzero(s: *mut u8, n: usize) {}
 
 // arm specific config
 #[cfg(target_arch = "arm")]

@@ -7,6 +7,9 @@ rustflags = ["-C", "link-arg=-mthumb",
              "-C", "link-arg=-Tplaydate-sys/src/link_map.ld"]
 linker = "arm-none-eabi-gcc"
 
+[target.x86_64-pc-windows-msvc]
+rustflags = ["-C", "link-arg=/NOENTRY"]
+
 [unstable]
 build-std-features = ["compiler-builtins-mem"]
 build-std = ["core", "alloc"]
