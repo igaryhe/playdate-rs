@@ -12,6 +12,7 @@ if %1==simulator (
 )
 set out=%~dp0target\%target%\release\examples
 start /w /b cargo build --release --example %2 --target %target%
+if %errorlevel% neq 0 exit %errorlevel%
 if not exist %out%\source mkdir %out%\source
 if not exist %~dp0build mkdir %~dp0build
 if %1==simulator (

@@ -1,11 +1,12 @@
 #!/bin/bash
-if [[ "$1" == "clean" ]] || if [[ "$1" == "simulator" ]] || if [[ "$1" == "device" ]];then
+set -e
+if [[ "$1" == "clean" ]] || [[ "$1" == "simulator" ]] || [[ "$1" == "device" ]];then
     if [[ "$1" == "clean" ]];then
         cargo clean
         rm -r build
     else
         if [[ "$1" == "simulator" ]];then
-            target=x86_64-apple-darwin
+            target=$(uname -m)-apple-darwin
         elif [[ "$1" == "device" ]];then
             target=thumbv7em-none-eabihf
         fi

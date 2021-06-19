@@ -1,5 +1,5 @@
 #![no_std]
-#![feature(alloc_error_handler, core_intrinsics)]
+#![feature(alloc_error_handler, core_intrinsics, rustc_private)]
 
 pub extern crate playdate_sys as sys;
 use anyhow::Result;
@@ -13,6 +13,7 @@ pub mod sprite;
 pub mod system;
 
 extern crate alloc;
+extern crate compiler_builtins;
 use core::alloc::{GlobalAlloc, Layout};
 use core::ptr;
 use sys::cty;
@@ -215,15 +216,22 @@ fn panic(panic_info: &PanicInfo) -> ! {
 static _fltused: i32 = 0;
 
 // macos specific config
-#[cfg(target_os = "macos")]
+#[cfg(all(target_os = "macos", target_arch = "x86_64"))]
 #[no_mangle]
-pub unsafe extern "C" fn bzero(s: *mut u8, n: usize) {}
+pub extern "C" fn __bzero(s: *mut u8, n: usize) {
+    unsafe { compiler_builtins::mem::memset(s, 0, n); }
+}
+
+#[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+#[no_mangle]
+pub extern "C" fn bzero(s: *mut u8, n: usize) {
+    unsafe { compiler_builtins::mem::memset(s, 0, n); }
+}
 
 // arm specific config
 #[cfg(target_arch = "arm")]
 extern "C" {
-    fn eventHandler(playdate: *mut PlaydateAPI, event: sys::PDSystemEvent, _arg: u32)
-        -> cty::c_int;
+    fn eventHandler(playdate: *mut PlaydateAPI, event: sys::PDSystemEvent, _arg: u32) -> cty::c_int;
     fn __bss_start__();
     fn __bss_end__();
 }
